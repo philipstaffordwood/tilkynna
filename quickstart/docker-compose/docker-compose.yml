@@ -8,7 +8,7 @@
 version: '3'
 services:
   web:
-    image: gbl-baobab-docker-local.jfrog.io/tilkynna:latest
+    image:  grindrodbank/tilkynna:latest
     ports:
      - "9981:9981"
     # Persist the data between container invocations  (you will need to persist the postgres data at the same time if you want to do this) 
