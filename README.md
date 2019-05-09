@@ -1,6 +1,6 @@
 [![CircleCI](https://circleci.com/gh/GrindrodBank/tilkynna.svg?style=svg)](https://circleci.com/gh/GrindrodBank/tilkynna)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FGrindrodBank%2Ftilkynna.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FGrindrodBank%2Ftilkynna?ref=badge_shield)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=GrindrodBank_tilkynna&metric=alert_status)](https://sonarcloud.io/dashboard?id=GrindrodBank_tilkynna)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Grindrodbank_tilkynna&metric=alert_status)](https://sonarcloud.io/dashboard?id=Grindrodbank_tilkynna)
 
 # Tilkynna
 Tilkynna is an enterprise grade, utility-style report server wrapper written in Java.
