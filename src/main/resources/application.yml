@@ -1,0 +1,98 @@
+tilkynna:
+  templates:
+    storage: FileSystemContentRepository
+    location: tmp/templates
+  generate: 
+    hostname: http://localhost:9981
+    threading:
+      poolSize: 15
+      maxPoolSize: 300
+      queueCapacity: 1000
+    monitorPendingRequests: #config for monitoring PENDING report requests and publishing them to be processed 
+      fixedRateInMilliseconds: 1000
+      initialDelayInMilliseconds: 5000
+    monitorFailedRequests: #config for monitoring FAILED report requests and re enqueing them
+      fixedRateInMilliseconds: 1000
+      initialDelayInMilliseconds: 5000
+    monitorStalledRequests: 
+      fixedRateInMilliseconds: 1000
+      initialDelayInMilliseconds: 5000
+    retry: 
+      maxAttempts: 3
+      backOffPeriodInMilliseconds: 5000
+  generatedreports:
+    #storage: FileSystemContentRepository
+    location: tmp/reports    
+
+server:
+  port: 9981
+spring:
+  datasource:
+    initialization-mode: always
+    url: jdbc:postgresql://localhost:5432/tilkynna?user=postgres&password=postgres
+  flyway:
+    enabled: true
+    group: true
+    locations: classpath:db/migration/{vendor}
+    schemas: _reports
+  jpa:
+    generate-ddl: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: _reports
+        # Fix Postgres JPA Error:
+        # Method org.postgresql.jdbc.PgConnection.createClob() is not yet implemented.
+        temp:
+          use_jdbc_metadata_defaults: false
+    show-sql: false
+    
+#Security Properties
+rest:
+  security:
+    # This property toggles whether Oauth 2.0 based security is enabled. A 'disabled' value removes all security.
+    enabled: true
+    issuerUri: "http://localhost:8180/auth/realms/Tilkynna"
+    apiMatcher: "/**"
+    cors:
+      allowedOrigins: "*"
+      allowed-headers: "*"
+      allowed-methods: "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+      maxAge: 3600
+
+# This section is only used of rest.security.enabled = true
+security:
+  oauth2:
+    resource:
+      id: tilkynna
+      tokenInfoUri: ${rest.security.issuerUri}/protocol/openid-connect/token/introspect
+      userInfoUri: ${rest.security.issuerUri}/protocol/openid-connect/userinfo
+      jwt:
+        keyValue: "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmulcajWJq15GpDmlfwVDw94vOnrk3TS/GP4S8wZvbulZbGna1kFR1usHiz4CXWE6xb9s2D820crj2ERsubNbe6GLNLynLDUui85QcHQhvb8wXUvq9+d4SckYpLujys//qU77AuhC7Xbutw8+UC8qlw0niF3kbLnx2rCpN0cbad6T0uFBRbAvS8EwHDm1Ta/em+VXoPQE3baQoawSMRjSnuxB2JAnof8fijxGPRQhxnQGUa1bwh7lgV2ClPGZ6WfzW25yInQY8Yni0bKJ0vsR/NgetB1JOLFiAgoFRn5IHbft4Hv+tVLBAsZRnhuu8mXtNY8YNiaLVM2FuuSg/EHOrwIDAQAB\n-----END PUBLIC KEY-----"
+
+# This setting exposes all the actuator routes, some of which expose sensitive info. Ensure that only the /health route is exposed
+# publically for readiness and liveness probes in non-dev environments.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "info, health"    
+    
+logging:
+  level:    
+    root: INFO
+    org.springframework.security: ERROR
+    org.tilkynna: DEBUG
+    org.tilkynna.report.generate: INFO
+    #org.springframework.orm.jpa: DEBUG      
+    #org.springframework.transaction: DEBUG
+    #org.hibernate.engine: TRACE
+    #org.hibernate.SQL: DEBUG    
+    #org.hibernate.type:
+    #      descriptor:
+    #        sql:
+    #          BasicBinder: TRACE
+
+    
+    

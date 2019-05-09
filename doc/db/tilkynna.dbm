@@ -1,0 +1,662 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+CAUTION: Do not modify this file unless you know what you are doing.
+         Unexpected results may occur if the code is changed deliberately.
+-->
+<dbmodel pgmodeler-ver="0.9.2-alpha1" last-position="0,414" last-zoom="1" max-obj-count="20"
+	 default-owner="postgres">
+<database name="tilkynna" encoding="UTF8" is-template="false" allow-conns="true">
+	<role name="postgres"/>
+	<tablespace name="pg_default"/>
+</database>
+
+<schema name="public" layer="0" rect-visible="true" fill-color="#e1e1e1" sql-disabled="true">
+</schema>
+
+<extension name="pgcrypto" cur-version="1.3">
+	<schema name="public"/>
+	<comment><![CDATA[cryptographic functions]]></comment>
+</extension>
+
+<schema name="_reports" layer="0" rect-visible="true" fill-color="#3b778a">
+	<role name="postgres"/>
+</schema>
+
+<table name="template" layer="0" collapse-mode="2" max-obj-count="3">
+	<schema name="_reports"/>
+	<role name="postgres"/>
+	<position x="980" y="60"/>
+	<column name="id" not-null="true" default-value="gen_random_uuid()">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="name" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<column name="original_filename" not-null="true">
+		<type name="text" length="0"/>
+		<comment><![CDATA[the birt report design file location ]]></comment>
+	</column>
+	<constraint name="pk_template" type="pk-constr" table="_reports.template">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+	<constraint name="un_template_name" type="uq-constr" table="_reports.template">
+		<columns names="name" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="export_format" layer="0" collapse-mode="2" max-obj-count="4">
+	<schema name="_reports"/>
+	<role name="postgres"/>
+	<comment><![CDATA[enum ? PDF, CSV, TXT, ]]></comment>
+	<position x="1400" y="200"/>
+	<column name="id" not-null="true"
+	 identity-type="ALWAYS" start="1" increment="1" min-value="0" max-value="32767" cache="1">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="name">
+		<type name="text" length="0"/>
+	</column>
+	<column name="media_type">
+		<type name="text" length="0"/>
+	</column>
+	<column name="is_active">
+		<type name="boolean" length="0"/>
+	</column>
+	<constraint name="pk_export_format" type="pk-constr" table="_reports.export_format">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<usertype name="ui-notification_status" configuration="enumeration">
+	<schema name="_reports"/>
+	<role name="postgres"/>
+	<comment><![CDATA[this provides an enumerated type for ui-notifications]]></comment>
+	<enumeration values="unread,read,closed"/>
+</usertype>
+
+<usertype name="report_status" configuration="enumeration">
+	<schema name="_reports"/>
+	<role name="postgres"/>
+	<comment><![CDATA[Status of the request to generated a report
+PENDING: requested accepted 
+STARTED: processing of the request has started 
+FAILED: processing for generating the report failed
+FINISHED: processing for generating the report of streamed destination complete
+FINISHED_REMOTE: processing for generating the report to any destination other than streaming is complete]]></comment>
+	<enumeration values="PENDING,STARTED,FAILED,FINISHED"/>
+</usertype>
+
+<table name="destination" layer="0" collapse-mode="2" max-obj-count="9">
+	<schema name="_reports"/>
+	<role name="postgres"/>
+	<position x="600" y="560"/>
+	<column name="destination_id" not-null="true" default-value="gen_random_uuid()">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="type" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<column name="name" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<column name="description">
+		<type name="text" length="0"/>
+	</column>
+	<column name="security_protocol" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<column name="timeout" default-value="5000">
+		<type name="bigint" length="0"/>
+	</column>
+	<column name="is_active" default-value="false">
+		<type name="boolean" length="0"/>
+	</column>
+	<column name="downloadable" not-null="true">
+		<type name="boolean" length="0"/>
+	</column>
+	<constraint name="pk_destination" type="pk-constr" table="_reports.destination">
+		<columns names="destination_id" ref-type="src-columns"/>
+	</constraint>
+	<constraint name="un_destination_name" type="uq-constr" table="_reports.destination">
+		<columns names="name" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="smtp" layer="0" collapse-mode="2" max-obj-count="8">
+	<schema name="_reports"/>
+	<role name="postgres"/>
+	<position x="160" y="780"/>
+	<column name="destination_id" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="host" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<column name="port" not-null="true">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="username" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<column name="password" not-null="true">
+		<type name="bytea" length="0"/>
+	</column>
+	<column name="password_hash" not-null="true">
+		<type name="text" length="0"/>
+		<comment><![CDATA[This column will be used to validate that the decryption of the encrypted password was successful.]]></comment>
+	</column>
+	<column name="from_address" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<constraint name="pk_smtp" type="pk-constr" table="_reports.smtp">
+		<columns names="destination_id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="sftp" layer="0" collapse-mode="2" max-obj-count="8">
+	<schema name="_reports"/>
+	<role name="postgres"/>
+	<position x="420" y="900"/>
+	<column name="destination_id" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="host" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<column name="port" not-null="true">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="username" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<column name="password" not-null="true">
+		<type name="bytea" length="0"/>
+	</column>
+	<column name="password_hash" not-null="true">
+		<type name="text" length="0"/>
+		<comment><![CDATA[This column will be used to validate that the decryption of the encrypted password was successful.]]></comment>
+	</column>
+	<column name="working_directory" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<constraint name="pk_sftp" type="pk-constr" table="_reports.sftp">
+		<columns names="destination_id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="web_endpoint" layer="0" collapse-mode="2" max-obj-count="3">
+	<schema name="_reports"/>
+	<role name="postgres"/>
+	<position x="720" y="960"/>
+	<column name="destination_id" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="url" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<column name="verb" not-null="true">
+		<type name="text" length="0"/>
+		<comment><![CDATA[POST,PUT]]></comment>
+	</column>
+	<constraint name="pk_web_endpoint" type="pk-constr" table="_reports.web_endpoint">
+		<columns names="destination_id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="datasource" layer="0" collapse-mode="2" max-obj-count="6">
+	<schema name="_reports"/>
+	<role name="postgres"/>
+	<position x="100" y="60"/>
+	<column name="datasource_id" not-null="true" default-value="gen_random_uuid()">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="type" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<column name="name" not-null="true">
+		<type name="varchar" length="255"/>
+	</column>
+	<column name="description">
+		<type name="text" length="0"/>
+	</column>
+	<column name="is_active" default-value="false">
+		<type name="boolean" length="0"/>
+	</column>
+	<constraint name="pk_datasource" type="pk-constr" table="_reports.datasource">
+		<columns names="datasource_id" ref-type="src-columns"/>
+	</constraint>
+	<constraint name="un_name" type="uq-constr" table="_reports.datasource">
+		<columns names="name" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="template_tag" layer="0" collapse-mode="2" max-obj-count="2">
+	<schema name="_reports"/>
+	<role name="postgres"/>
+	<comment><![CDATA[Purposely Denormalised]]></comment>
+	<position x="1400" y="60"/>
+	<column name="template_id">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="tag" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+</table>
+
+<table name="stream" layer="0" collapse-mode="2" max-obj-count="2">
+	<schema name="_reports"/>
+	<role name="postgres"/>
+	<position x="1020" y="980"/>
+	<column name="destination_id" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<constraint name="pk_stream" type="pk-constr" table="_reports.stream">
+		<columns names="destination_id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="s3" layer="0" collapse-mode="2" max-obj-count="3">
+	<schema name="_reports"/>
+	<role name="postgres"/>
+	<position x="140" y="620"/>
+	<column name="destination_id" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="access_key" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<column name="secret_key" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<constraint name="pk_s3" type="pk-constr" table="_reports.s3">
+		<columns names="destination_id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="jdbc" layer="0" collapse-mode="2" max-obj-count="7">
+	<schema name="_reports"/>
+	<role name="postgres"/>
+	<position x="20" y="300"/>
+	<column name="datasource_id" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="driver_class" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<column name="db_url" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<column name="username" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<column name="password" not-null="true">
+		<type name="bytea" length="0"/>
+	</column>
+	<column name="password_hash" not-null="true">
+		<type name="text" length="0"/>
+		<comment><![CDATA[This column will be used to validate that the decryption of the encrypted password was successful.]]></comment>
+	</column>
+	<constraint name="pk_jdbc" type="pk-constr" table="_reports.jdbc">
+		<columns names="datasource_id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="flat_file" layer="0" collapse-mode="2" max-obj-count="7">
+	<schema name="_reports"/>
+	<role name="postgres"/>
+	<position x="320" y="300"/>
+	<column name="datasource_id" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="file_uri" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<column name="char_set" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<column name="flat_file_style" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<column name="first_line_header" default-value="true">
+		<type name="boolean" length="0"/>
+	</column>
+	<column name="second_line_data_type_indicator" default-value="false">
+		<type name="boolean" length="0"/>
+	</column>
+	<constraint name="pk_flat_file" type="pk-constr" table="_reports.flat_file">
+		<columns names="datasource_id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="ui-notification" layer="0" collapse-mode="2" max-obj-count="6">
+	<schema name="_reports"/>
+	<role name="postgres"/>
+	<comment><![CDATA[to be replaced later with a more robust topic-subscribe notfication capability]]></comment>
+	<position x="20" y="1020"/>
+	<column name="id" not-null="true">
+		<type name="bigint" length="0"/>
+	</column>
+	<column name="title" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<column name="message">
+		<type name="text" length="0"/>
+	</column>
+	<column name="notification_status">
+		<type name="_reports.&quot;ui-notification_status&quot;" length="0"/>
+	</column>
+	<column name="user_id">
+		<type name="uuid" length="0"/>
+	</column>
+	<constraint name="pk_notification" type="pk-constr" table="_reports.&quot;ui-notification&quot;">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="template_datasource" layer="0" collapse-mode="2" max-obj-count="3">
+	<schema name="_reports"/>
+	<role name="postgres"/>
+	<position x="540" y="60"/>
+	<column name="template_id" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="datasource_id" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<constraint name="pk_template_datasource" type="pk-constr" table="_reports.template_datasource">
+		<columns names="template_id,datasource_id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<index name="idx_tag" table="_reports.template_tag"
+	 concurrent="false" unique="false" fast-update="false" buffering="false"
+	 index-type="gin" factor="0">
+		<idxelement use-sorting="false">
+			<expression><![CDATA[to_tsvector('english', tag)]]></expression>
+		</idxelement>
+</index>
+
+<table name="generated_report" layer="0" collapse-mode="2" max-obj-count="12">
+	<schema name="_reports"/>
+	<role name="postgres"/>
+	<position x="960" y="260"/>
+	<column name="correlation_id" not-null="true" default-value="gen_random_uuid()">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="requested_by" not-null="true">
+		<type name="uuid" length="0"/>
+		<comment><![CDATA[The uuid of the users (in KeyCloak) logged in and requesting the report]]></comment>
+	</column>
+	<column name="requested_at" not-null="true">
+		<type name="timestamptz" length="0"/>
+	</column>
+	<column name="generated_at" not-null="true">
+		<type name="timestamptz" length="0"/>
+	</column>
+	<column name="destination_id" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="template_id" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="export_format_id" not-null="true">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="request_body" not-null="true">
+		<type name="json" length="0"/>
+		<comment><![CDATA[JSON of the request body to be used for generating this report]]></comment>
+	</column>
+	<column name="report_status">
+		<type name="_reports.report_status" length="0"/>
+	</column>
+	<column name="retry_count" default-value="0">
+		<type name="smallint" length="0"/>
+		<comment><![CDATA[Number of times left to rety upon failure ]]></comment>
+	</column>
+	<constraint name="pk_generated_report" type="pk-constr" table="_reports.generated_report">
+		<columns names="correlation_id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="selected_destination_parameter" layer="0" collapse-mode="2" max-obj-count="4">
+	<schema name="_reports"/>
+	<role name="postgres"/>
+	<comment><![CDATA[destination parameter value for the specific report. For example if destination type is SMTP. destination_parameter entries would include: 
+to: melissap@grindrodbank.co.za
+subject: report to be sent]]></comment>
+	<position x="1340" y="380"/>
+	<column name="id" not-null="true"
+	 identity-type="ALWAYS" start="1" increment="1" min-value="0" max-value="9223372036854775807" cache="1">
+		<type name="bigint" length="0"/>
+	</column>
+	<column name="correlation_id" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="destination_parameter_id">
+		<type name="bigint" length="0"/>
+	</column>
+	<column name="value">
+		<type name="text" length="0"/>
+	</column>
+	<constraint name="pk_selected_destination_parameter" type="pk-constr" table="_reports.selected_destination_parameter">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="destination_parameter" layer="0" collapse-mode="2" max-obj-count="8">
+	<schema name="_reports"/>
+	<role name="postgres"/>
+	<comment><![CDATA[Holds the possible variable parameters for a destination. For example SFTP can have a path (which could be different for any report request), SMTP has to,cc,bcc,subject,body parameters. ]]></comment>
+	<position x="1340" y="620"/>
+	<column name="id" not-null="true"
+	 identity-type="ALWAYS" start="1" increment="1" min-value="0" max-value="9223372036854775807" cache="1">
+		<type name="bigint" length="0"/>
+	</column>
+	<column name="destination_id" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="name" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<column name="data_type" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<column name="description">
+		<type name="text" length="0"/>
+	</column>
+	<column name="required" not-null="true" default-value="true">
+		<type name="bool" length="0"/>
+	</column>
+	<column name="validation">
+		<type name="text" length="0"/>
+		<comment><![CDATA[RegEx used to validate a selected_destination_paramter. As selected_destination_parameter.value is just TEXT. (eg. for an email the ##.validation field might be something like: ^[A-Z0-9._%+-]+@[A-Z0-9.-]+.[A-Z]{2,}$]]></comment>
+	</column>
+	<constraint name="pk_destination_parameter" type="pk-constr" table="_reports.destination_parameter">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+	<constraint name="un_destination_parameter_name" type="uq-constr" table="_reports.destination_parameter">
+		<columns names="destination_id,name" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<constraint name="fk_destination.id" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="_reports.destination" table="_reports.smtp">
+	<columns names="destination_id" ref-type="src-columns"/>
+	<columns names="destination_id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_destination.id" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="_reports.destination" table="_reports.sftp">
+	<columns names="destination_id" ref-type="src-columns"/>
+	<columns names="destination_id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_destination.id" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="_reports.destination" table="_reports.web_endpoint">
+	<columns names="destination_id" ref-type="src-columns"/>
+	<columns names="destination_id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_template.id" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="_reports.template" table="_reports.template_tag">
+	<columns names="template_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_destination.id" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="_reports.destination" table="_reports.stream">
+	<columns names="destination_id" ref-type="src-columns"/>
+	<columns names="destination_id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_destination.id" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="_reports.destination" table="_reports.s3">
+	<columns names="destination_id" ref-type="src-columns"/>
+	<columns names="destination_id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_datasource.id" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="_reports.datasource" table="_reports.jdbc">
+	<columns names="datasource_id" ref-type="src-columns"/>
+	<columns names="datasource_id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_datasource.id" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="_reports.datasource" table="_reports.flat_file">
+	<columns names="datasource_id" ref-type="src-columns"/>
+	<columns names="datasource_id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_template.id" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="CASCADE" del-action="CASCADE" ref-table="_reports.template" table="_reports.template_datasource">
+	<columns names="template_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_datasource.id" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="CASCADE" del-action="CASCADE" ref-table="_reports.datasource" table="_reports.template_datasource">
+	<columns names="datasource_id" ref-type="src-columns"/>
+	<columns names="datasource_id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_destination.id" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="CASCADE" del-action="CASCADE" ref-table="_reports.destination" table="_reports.generated_report">
+	<columns names="destination_id" ref-type="src-columns"/>
+	<columns names="destination_id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_export_format.id" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="CASCADE" del-action="CASCADE" ref-table="_reports.export_format" table="_reports.generated_report">
+	<columns names="export_format_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_template_id" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="_reports.template" table="_reports.generated_report">
+	<columns names="template_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_generated_report.correlation_id" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="_reports.generated_report" table="_reports.selected_destination_parameter">
+	<columns names="correlation_id" ref-type="src-columns"/>
+	<columns names="correlation_id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_destination_parameter.id" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="_reports.destination_parameter" table="_reports.selected_destination_parameter">
+	<columns names="destination_parameter_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_destination" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="_reports.destination" table="_reports.destination_parameter">
+	<columns names="destination_id" ref-type="src-columns"/>
+	<columns names="destination_id" ref-type="dst-columns"/>
+</constraint>
+
+<relationship name="rel_smtp_destination" type="relfk" layer="0"
+	 src-table="_reports.smtp"
+	 dst-table="_reports.destination" reference-fk="fk_destination.id"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_sftp_destination" type="relfk" layer="0"
+	 src-table="_reports.sftp"
+	 dst-table="_reports.destination" reference-fk="fk_destination.id"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_web_endpoint_destination" type="relfk" layer="0"
+	 src-table="_reports.web_endpoint"
+	 dst-table="_reports.destination" reference-fk="fk_destination.id"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_template_tag_template" type="relfk" layer="0"
+	 src-table="_reports.template_tag"
+	 dst-table="_reports.template" reference-fk="fk_template.id"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_stream_destination" type="relfk" layer="0"
+	 src-table="_reports.stream"
+	 dst-table="_reports.destination" reference-fk="fk_destination.id"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_s3_destination" type="relfk" layer="0"
+	 src-table="_reports.s3"
+	 dst-table="_reports.destination" reference-fk="fk_destination.id"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_jdbc_datasource" type="relfk" layer="0"
+	 src-table="_reports.jdbc"
+	 dst-table="_reports.datasource" reference-fk="fk_datasource.id"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_flat_file_datasource" type="relfk" layer="0"
+	 src-table="_reports.flat_file"
+	 dst-table="_reports.datasource" reference-fk="fk_datasource.id"
+	 src-required="false" dst-required="false">
+	<label ref-type="name-label">
+		<position x="73.4292" y="-40.1266"/>
+	</label>
+</relationship>
+
+<relationship name="rel_template_datasource_template" type="relfk" layer="0"
+	 src-table="_reports.template_datasource"
+	 dst-table="_reports.template" reference-fk="fk_template.id"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_template_datasource_datasource" type="relfk" layer="0"
+	 src-table="_reports.template_datasource"
+	 dst-table="_reports.datasource" reference-fk="fk_datasource.id"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_generated_report_destination" type="relfk" layer="0"
+	 src-table="_reports.generated_report"
+	 dst-table="_reports.destination" reference-fk="fk_destination.id"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_generated_report_export_format" type="relfk" layer="0"
+	 src-table="_reports.generated_report"
+	 dst-table="_reports.export_format" reference-fk="fk_export_format.id"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_generated_report_template" type="relfk" layer="0"
+	 src-table="_reports.generated_report"
+	 dst-table="_reports.template" reference-fk="fk_template_id"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_selected_destination_inputs_generated_report" type="relfk" layer="0"
+	 src-table="_reports.selected_destination_parameter"
+	 dst-table="_reports.generated_report" reference-fk="fk_generated_report.correlation_id"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_selected_destination_inputs_destination_inputs" type="relfk" layer="0"
+	 src-table="_reports.selected_destination_parameter"
+	 dst-table="_reports.destination_parameter" reference-fk="fk_destination_parameter.id"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_destination_parameter_destination" type="relfk" layer="0"
+	 src-table="_reports.destination_parameter"
+	 dst-table="_reports.destination" reference-fk="fk_destination"
+	 src-required="false" dst-required="false"/>
+
+</dbmodel>

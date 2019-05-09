@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-sftp="http://www.springframework.org/schema/integration/sftp"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp http://www.springframework.org/schema/integration/sftp/spring-integration-sftp-5.1.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-5.1.xsd">	 	
+
+	<context:property-placeholder />
+	
+	<bean id="sftpClientFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
+		<property name="host" value="${host}"/>
+		<property name="port" value="${port}"/>
+		<property name="user" value="${user}"/>
+		<property name="password" value="${password}"/>
+		<property name="allowUnknownKeys" value="true"/>
+	</bean>
+
+	<int:channel id="toSftpChannel" />
+
+	<int-sftp:outbound-channel-adapter
+		id="sftpOutbound" 
+		channel="toSftpChannel" 
+		charset="UTF-8"
+		remote-directory="${remote.directory}"
+		auto-create-directory="true"
+		session-factory="sftpClientFactory"		
+		remote-filename-generator-expression="headers[filename] + '.' + headers[extension]"
+		mode="REPLACE">
+
+		<!-- <int-sftp:request-handler-advice-chain>
+			<int:retry-advice max-attempts="" recovery-channel=""  send-timeout="" />
+		</int-sftp:request-handler-advice-chain> -->
+	</int-sftp:outbound-channel-adapter>
+				
+	<!-- remote-filename-generator-expression="payload.getName() + '-foo'" -->
+	<!-- remote-directory-expression="" -->
+	<!--  headers['customer'] -->
+	<!--  could I use wiretapping for anythign here? -->
+				
+</beans>
+

@@ -1,0 +1,137 @@
+#
+# *************************************************
+# Copyright (c) 2019, Grindrod Bank Limited
+# License MIT: https://opensource.org/licenses/MIT
+# **************************************************
+#
+version: 2
+executorType: machine
+jobs:
+  static-analysis:
+    docker:
+      - image: maven:3.5.3-jdk-8-alpine
+    working_directory: ~/build
+    environment:
+      # Customize the JVM maximum heap limit
+      MAVEN_OPTS: "-Xmx3200m"
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - tilkynna-build-sonar-2-{{ checksum "pom.xml" }}
+      - run: mvn clean && mvn dependency:go-offline -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: tilkynna-build-sonar-2-{{ checksum "pom.xml" }}
+      - run: |
+         mvn clean
+         mvn package \
+                -Dmaven.test.skip=true \
+            org.jacoco:jacoco-maven-plugin:prepare-agent \
+            sonar:sonar \
+                -Dsonar.host.url=https://sonarcloud.io \
+                -Dsonar.projectKey=$SONAR_PROJECT_KEY \
+                -Dsonar.organization=$SONAR_ORG \
+                -Dsonar.login=$SONAR_AUTH_TOKEN \
+                -Dsonar.branch.name=$CIRCLE_BRANCH \
+                -Dsonar.exclusions=srcgen/**/*
+  test:
+    docker:
+      - image: maven:3.5.3-jdk-8-alpine
+    working_directory: ~/build
+    
+    environment:
+      # Customize the JVM maximum heap limit
+      MAVEN_OPTS: "-Xmx3200m"
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - tilkynna-build-2-{{ checksum "pom.xml" }}
+      - run: mvn clean && mvn dependency:go-offline -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: tilkynna-build-2-{{ checksum "pom.xml" }}
+      - run: pwd && find .
+      - run: mvn clean && mvn test
+  license-headers:
+    docker:
+      - image: maven:3.5.3-jdk-8-alpine
+    working_directory: ~/build
+    environment:
+      # Customize the JVM maximum heap limit
+      MAVEN_OPTS: "-Xmx3200m "
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - tilkynna-build-lic-2-{{ checksum "pom.xml" }}
+      - run: mvn dependency:go-offline -f pom-rat.xml -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: tilkynna-build-lic-2-{{ checksum "pom.xml" }} -f pom-rat.xml
+      - run: "mvn clean -f pom-rat.xml license:check"
+  docker-build:
+    docker:
+      - image: docker:18.09
+    working_directory: ~/build
+    steps:
+      - checkout
+      - run: echo "running docker build script" && pwd && ./scripts/docker-build.sh $REPO $IMAGE_NAME $DOCKER_TAG
+  docker-build-push:
+    docker:
+      - image: docker:18.09
+    working_directory: ~/build
+    steps:
+      - checkout
+      - run: echo "running docker build script" && pwd && ./scripts/docker-build-and-push.sh $REPO $IMAGE_NAME $DOCKER_TAG $DOCKER_REPO_HOST $DOCKER_USER $DOCKER_PASS
+  fossa-scan:
+    docker:
+      - image: golang:1.10.0-stretch
+    working_directory: ~/dokuti-build
+    steps:
+      # Install Fossa
+      - run: |
+          curl -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/fossa-cli/master/install.sh | sudo bash
+      # Install Maven
+      - run: sudo apt-get update
+      - run: sudo apt-get -y install maven
+      - checkout
+      - run: fossa init
+      - run: FOSSA_API_KEY=$FOSSA_API_KEY fossa analyze
+      # Note: The 'fossa test' command must be run after the analyze command has been run, as it is dependent on the previous scan.
+      - run: fossa test
+workflows:
+  version: 2
+  build_test_and_push:
+    jobs:
+      - test
+      - static-analysis
+      - fossa-scan:
+          filters:
+            tags:
+              only: /^v*.*.*/
+            branches:
+              only: master
+      - license-headers
+      - docker-build:
+          requires:
+          - test
+          - static-analysis
+          - license-headers
+          filters:
+            branches:
+              ignore: master
+      - docker-build-push:
+          requires:
+          - test
+          - static-analysis
+          - license-headers
+          filters:
+            tags:
+              only: /^v*.*.*/
+            branches:
+              only: master

@@ -1,0 +1,115 @@
+tilkynna:
+  templates:
+    storage: FileSystemContentRepository
+    location: tmp/templates
+  generate: 
+    hostname: http://localhost:9981
+    threading:
+      poolSize: 15
+      maxPoolSize: 300
+      queueCapacity: 1000
+    monitorPendingRequests: 
+      fixedRateInMilliseconds: 5000000
+      initialDelayInMilliseconds: 5000000
+    monitorFailedRequests:
+      fixedRateInMilliseconds: 5000000
+      initialDelayInMilliseconds: 5000000
+    monitorStalledRequests: 
+      fixedRateInMilliseconds: 5000000
+      initialDelayInMilliseconds: 5000000
+    retry: 
+      maxAttempts: 3
+      backOffPeriodInMilliseconds: 5000   
+  generatedreports:
+    #storage: FileSystemContentRepository
+    location: tmp/reports
+               
+server:
+  port: 9981
+spring:
+  datasource:
+    initialization-mode: always
+    url: jdbc:tc:postgresql:10-alpine:///databasename?TC_INITSCRIPT=init_pg.sql
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+  flyway:
+    enabled: true
+    group: true
+    locations: classpath:db/migration/{vendor}
+    schemas: _reports
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQL95Dialect
+    generate-ddl: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: _reports
+        hbm2ddl:
+          import_files: classpath:data.sql
+        temp:
+          use_jdbc_metadata_defaults: false
+    show-sql: true
+  test:
+    database:
+      replace: none
+      
+#Security Properties
+rest:
+  security:
+    # This property toggles whether Oauth 2.0 based security is enabled. A 'disabled' value removes all security.
+    enabled: false
+    issuerUri: "http://keycloak.local/auth/realms/Dokuti"
+    apiMatcher: "/**"
+    cors:
+      allowedOrigins: "*"
+      allowed-headers: "*"
+      allowed-methods: "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+      maxAge: 3600
+
+# This section is only used of rest.security.enabled = true
+security:
+  oauth2:
+    resource:
+      id: dokuti
+      tokenInfoUri: ${rest.security.issuerUri}/protocol/openid-connect/token/introspect
+      userInfoUri: ${rest.security.issuerUri}/protocol/openid-connect/userinfo
+      jwt:
+        keyValue: "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAse9KSL+ZuZTXdMgqmPyYSfox+v+W+olboYfDNuZNNDxgscK/uWNM3A/nJaN3xqGpmB37Thv27G17eUNBRToy+OmCsDymfeqTP+MGsgh+VOujkdFGQkOWzX02uQTVngPkyOaLY52fwZUsTvGXj4D+sci5N52/IpXf3SsnTCz0LW2d7+hP9ne6qZ6z7IHBAUHNTxU9Kzkg7DdIyy3JfACWnky40vFycglI21OQEOr22fYS5MZMbhGkHcrUE3f+OLZKGY+aI+ePDJi6onz7YiPpCEb2942S9PmVfL9vcEjp1RimCNxUWJIfSz5Wh6ghkcHngye2vaRK50neNk0WURG2LQIDAQAB\n-----END PUBLIC KEY-----"
+
+# This setting exposes all the actuator routes, some of which expose sensitive info. Ensure that only the /health route is exposed
+# publically for readiness and liveness probes in non-dev environments.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"      
+
+logging:
+  level:    
+    root: INFO
+    org.tilkynna: DEBUG
+    #org.springframework.orm.jpa: DEBUG      
+    org.springframework.transaction: INFO
+    org.hibernate.engine: INFO
+    org.hibernate.SQL: INFO    
+    org.hibernate.type:
+          descriptor:
+            sql:
+              BasicBinder: TRACE
+#logging:
+#  level:
+#    org:
+#      hibernate:
+#        SQL: DEBUG
+#        type:
+#          descriptor:
+#            sql:
+#              BasicBinder: TRACE
+
+#log4j.logger.org.springframework.orm.jpa=INFO
+#log4j.logger.org.springframework.transaction=INFO
+
+#logging:
+#  level:
+#    root: INFO
+#    org.bigbaobab.bbdocument: DEBUG    

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+
+    *************************************************
+    Copyright (c) 2019, Grindrod Bank Limited
+    License MIT: https://opensource.org/licenses/MIT
+    **************************************************
+
+-->
+<additionalHeaders>
+    <go_template_style>
+        <firstLine>{{/*</firstLine>
+        <beforeEachLine> </beforeEachLine>
+        <endLine>*/}}</endLine>
+        <afterEachLine> </afterEachLine>
+        <!--skipLine></skipLine-->
+        <firstLineDetectionPattern>(\s|\t)*/\*.*$</firstLineDetectionPattern>
+        <lastLineDetectionPattern>.*\*/(\s|\t)*$</lastLineDetectionPattern>
+        <allowBlankLines>false</allowBlankLines>
+        <isMultiline>true</isMultiline>
+        <padLines>false</padLines>
+    </go_template_style>
+</additionalHeaders>

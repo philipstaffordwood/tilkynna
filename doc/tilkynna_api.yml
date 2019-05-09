@@ -1,0 +1,2825 @@
+#
+# *************************************************
+# Copyright (c) 2019, Grindrod Bank Limited
+# License MIT: https://opensource.org/licenses/MIT
+# **************************************************
+#
+
+openapi: 3.0.0
+info:
+  title: Tilkynna Reporting Server REST API
+  description: >-
+    The full Tilkynna Reporting Server REST API Specification. This
+    specification defines how to interact with Reports, Data Sources,
+    Destinations and more..
+  contact:
+    name: Tilkynna API Support
+    url: 'https://github.com/GrindrodBank/bb-api-definitions/blob/master/README.md'
+    email: mail@mail.com
+  license:
+    name: MIT
+    url: 'https://opensource.org/licenses/MIT'
+  version: '1'
+tags:
+- name: reports
+  description: These related to generating reports
+  externalDocs:
+    description: Find out more
+    url: 'http://reports.tilkynna.org'
+- name: report templates
+  description: These relate to report template details
+  externalDocs:
+    description: Find out more
+    url: 'http://reports.tilkynna.org'
+- name: report template tags    
+  description: APIs for managing the application of tags to templates.
+- name: report data sources
+  description: These relate to data sources that report templates use to generate reports
+- name: report destinations
+  description: These are report destinations where instances of reports can be persisted
+- name: report notifications
+  description: >-
+    These relate to notifications that are pushed to the API client when
+    reports are generated asynchronously
+- name: report lookups
+  description: >-
+    These relate to lookups necessary for uploading report templates,
+    configuring data sources, setting up report destinations and generating
+    reports reports
+servers:
+- url: 'http://localhost:9981'
+- url: 'https://reports.tilkynna.org/v1'
+paths:
+  /templates:
+    get:
+      tags:
+      - report templates
+      summary: Get Report Templates
+      description: Returns list of all report templates
+      operationId: getReportTemplates
+      parameters:
+      - name: page
+        in: query
+        required: false
+        description: The page to view.
+        schema:
+          type: integer
+          minimum: 0
+          format: int32
+          default: 0
+      - name: size
+        in: query
+        required: false
+        description: The size of a page.
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 20
+          format: int32
+          default: 10
+      - name: filterName
+        in: query
+        required: false
+        description: >-
+          A search query filter on the template report name will search report
+          names, while tags will filter on all matching tags. The search uses
+          logical AND between the search parameters.
+        schema:
+          type: string
+          minLength: 0
+          maxLength: 255
+        example: Agent%20Report
+      - name: filterTags
+        in: query
+        required: false
+        description: >-
+          A search query filter on the template report tags that  will filter
+          on all matching tags. The search uses logical AND between the search
+          parameters.
+        schema:
+          type: array
+          items:
+            type: string
+            minLength: 0
+            maxLength: 255
+        style: form
+        explode: false
+        example:
+        - kyc
+        - oc
+        - omm
+      - name: orderBy
+        in: query
+        required: false
+        style: form
+        explode: false
+        description: >-
+          a comma separated list of fields in their sort order. Ascending
+          order is assumed. Append desc after a field to indicate descending
+          order.
+        schema:
+          type: array
+          items:
+            type: string
+        examples:
+          oneFieldDescending:
+            summary: Example of a single sort field requested in descending order
+            value:
+            - reportName desc
+          multipleFields:
+            summary: Example of a multiple sort fields
+            value:
+            - reportName
+            - tags
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Pagination:
+              description: Pagination header
+              schema:
+                $ref: '#/components/schemas/PaginationHeaderResponse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Templates'
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: You are not authorized to access the report templates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Report templates not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: An unexpeced error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+      - report templates
+      summary: Upload Report Template
+      description: >-
+        Uploads a Report Template to the server and validates that its data
+        sources exist
+      operationId: uploadReportTemplate
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Template'
+        '400':
+          description: Report data sources do not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: You are not authorized to upload a report template
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: 'Duplicate report template found, it already exists'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: An unexpeced error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+              - file
+              - templateName
+              - datasourceIds
+              properties:
+                file:
+                  description: The report template file to upload.
+                  type: string
+                  format: binary
+                templateName:
+                  description: The unique name of the file to upload.
+                  type: string
+                  minLength: 1
+                  maxLength: 255
+                datasourceIds:
+                  type: array
+                  description: The datasourceId's to use for this template
+                  items:
+                    type: string
+                    format: uuid
+                    minLength: 1
+                    maxLength: 255
+                tags:
+                  type: array
+                  items:
+                    type: string
+                    minLength: 0
+                    maxLength: 255
+  '/templates/{templateId}':
+    parameters:
+    - name: templateId
+      description: Report template unique identifier
+      in: path
+      required: true
+      example: 767518b7-2c4c-45e3-a520-bbbbe4a9f421
+      schema:
+        type: string
+        format: uuid
+    get:
+      tags:
+      - report templates
+      summary: Get Report Template Detail
+      description: Get report template details
+      operationId: getReportTemplate
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateDetail'
+        '400':
+          description: Invalid report template parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: You are not authorized to view this report template
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Report template not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: An unexpeced error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+      - report templates
+      summary: Update a Report Template
+      description: >-
+        Update an existing Report Template on the server and validates that its
+        data sources exist
+      operationId: updateReportTemplate
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Template'
+        '400':
+          description: Report data sources do not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: You are not authorized to upload a report template
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: An unexpeced error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                templateFile:
+                  description: The report template file to upload.
+                  type: string
+                  format: binary
+                templateName:
+                  description: The unique name of the file to upload.
+                  type: string
+                datasourceIds:
+                  type: array
+                  description: The datasourceId's to use for this template
+                  items:
+                    type: string
+                    format: uuid
+                    minLength: 1
+                    maxLength: 255
+                tags:
+                  $ref: '#/components/schemas/LookupTags'
+    delete:
+      tags:
+      - report templates
+      summary: Delete a report template
+      description: permanently delete a report template.
+      operationId: deleteReportTemplate
+      responses:
+        '204':
+          description: OK
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: You are not authorized to remove report templates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Report template was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: An unexpeced error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  '/templates/{templateId}/generate':
+    post:
+      tags:
+      - reports
+      summary: Generate report asynchronously and persist on a remote destination
+      description: >-
+        Generate a report asynchronously and persist on a remote destination.
+        You must provide a callback url to be notified when the report
+        generation is complete.
+      operationId: TemplateGenerateRemoteRequest
+      parameters:
+      - name: templateId
+        description: Report template unique identifier
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        example: 767518b7-2c4c-45e3-a520-bbbbe4a9f421
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplateGenerateRemoteRequestBase'
+
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportStatus'
+        '400':
+          description: Invalid report parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: You are not authorized to generate the report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Report template not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: An unexpeced error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      callbacks:
+        notificationEvent:
+          '{$request.body#/callbackUrl}':
+            post:
+              operationId: notificationEventCallback
+              requestBody:
+                required: true
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/CallbackNotification'
+              responses:
+                '200':
+                  description: Your server returns this code if it accepts the callback
+  '/templates/{templateId}/tags':
+    post:
+      tags:
+      - report template tags
+      summary: Applies tags to Template.
+      description: >-
+        Applies the array of tags to the template. An array of Template tags to
+        apply to the template. Empty array removes will return 400. If a new tag
+        array does not include existing tags on the server, the existing
+        server-side tags will be removed.
+      operationId: addTempalteTags
+      parameters:
+      - name: templateId
+        description: Report template unique identifier
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LookupTags'    
+      responses:
+        '201':
+          description: Successful. Tags Added to Template.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateTagList'
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: You are not authorized to generate the report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Report template not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: An unexpeced error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'       
+    delete:
+      tags:
+      - report template tags
+      summary: Removes all tags from a template.
+      description: Clears all tags from a template
+      operationId: removeAllTemplateTags
+      parameters:
+      - name: templateId
+        description: Report template unique identifier
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '204':
+          description: Successful. Tags removed from the Template.
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: You are not authorized to remove tags from report templates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Report template or tag was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: An unexpeced error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  '/reports/{correlationId}':
+    get:
+      tags:
+      - reports
+      summary: Download a report or get its progress and status if unfinished
+      description: >-
+        Download a report or get its progress and status. Use the [Accept] header to select the type of data stream to
+        return.
+      operationId: downloadReportOrGetStatus
+      parameters:
+      - name: correlationId
+        description: Report unique identifier
+        in: path
+        required: true
+        example: 767518b7-2c4c-45e3-a520-bbbbe4a9f421
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            text/csv:
+              schema:
+                type: string
+            text/html:
+              schema:
+                type: string
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        '202':
+          description: >-
+            The template is being processed, but did not finish in time before a time-out will occur. The request is now
+            in asynchronous mode, that is the client will be let known by the server via websocket that the report has finished
+            or the client can poll the uri given in the payload for the status/bytes of the report.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportStatus'
+        '400':
+          description: Invalid report parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: You are not authorized to generate the report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Report template not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: An unexpeced error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  '/reports/{correlationId}/status':
+    get:
+      tags:
+      - reports
+      summary: Get the progress and status of a report
+      description: Get the progress and status of a report
+      operationId: getReportStatus
+      parameters:
+      - name: correlationId
+        description: Report unique identifier
+        in: path
+        required: true
+        example: 767518b7-2c4c-45e3-a520-bbbbe4a9f421
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: The current generation status of a report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportStatus'
+        '400':
+          description: Invalid report parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: You are not authorized to generate the report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Report template not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: An unexpeced error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /datasources:
+    get:
+      tags:
+      - report data sources
+      summary: Get a list of Report Data Sources
+      description: Return a list of Report Data Sources
+      operationId: getAllDataSources
+      parameters:
+      - name: page
+        in: query
+        required: false
+        description: The page to view.
+        schema:
+          type: integer
+          minimum: 0
+          format: int32
+          default: 0
+      - name: size
+        in: query
+        required: false
+        description: The size of a page.
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 20
+          format: int32
+          default: 10
+      - name: filterName
+        in: query
+        required: false
+        description: >-
+          A search query filter on the data set. The parameter searches both
+          [name] and [description], while [status] will filter on active or
+          inactive values. The search uses logical AND between the search
+          parameters.
+        schema:
+          type: string
+          minLength: 0
+          maxLength: 255
+        example: postgres
+      - name: filterStatus
+        in: query
+        required: false
+        description: >-
+          A search query filter on the data set. The parameter searches the
+          [status] field and will filter on either active or inactive values.
+          The search uses logical AND between the search parameters.
+        schema:
+          type: string
+          enum:
+          - active
+          - inactive
+          default: active
+        example: active
+      - name: orderBy
+        in: query
+        required: false
+        style: form
+        explode: false
+        description: >-
+          a comma separated list of fields in their sort order. Ascending
+          order is assumed. Append desc after a field to indicate descending
+          order.
+        schema:
+          type: array
+          items:
+            type: string
+        examples:
+          oneFieldDescending:
+            summary: Example of a single sort field requested in descending order
+            value:
+            - name desc
+          multipleFields:
+            summary: Example of a multiple sort fields
+            value:
+            - name
+            - status
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataSources'
+          headers:
+            X-Pagination:
+              description: Pagination header
+              schema:
+                $ref: '#/components/schemas/PaginationHeaderResponse'
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: You are not authorized to access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Export formats were not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: An unexpeced error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+      - report data sources
+      summary: Create a Data Source
+      description: Creates a new Data Source and returns it
+      operationId: createDataSource
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataSource'
+        '401':
+          description: You are not authorized to access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Data Source was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: An unexpeced error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        $ref: '#/components/requestBodies/DataSourceCreate'
+  /datasources/validate:
+    post:
+      tags:
+      - report data sources
+      summary: Validate a Data Source
+      description: >-
+        Validates the data source passed in. This validates a 'non-persisted'
+        data source.
+      operationId: validateDataSourceNoId
+      responses:
+        '200':
+          description: OK - valid connection
+        '401':
+          description: You are not authorized to access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: NOK - invalid/failed connection
+      requestBody:
+        $ref: '#/components/requestBodies/DataSourceConnection'
+  '/datasources/{datasourceId}':
+    parameters:
+    - name: datasourceId
+      description: Data Source unique identifier
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      example: 6307c80a-ebe7-11e8-8eb2-f2801f1b9fd1
+    get:
+      tags:
+      - report data sources
+      summary: Get a list of Report Data Sources
+      description: Return a list of Report Data Sources
+      operationId: getDataSource
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataSource'
+          headers:
+            X-Pagination:
+              description: Pagination header
+              schema:
+                $ref: '#/components/schemas/PaginationHeaderResponse'
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: You are not authorized to access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Data Source was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: An unexpeced error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+      - report data sources
+      summary: Replace existing Data Source
+      description: >-
+        Updates an existing Data Source with the requested fields. Validates
+        that the data source can be accessed.
+      operationId: updateDataSource
+      responses:
+        '204':
+          description: OK
+        '400':
+          description: Validation failed. Could not access data source.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: You are not authorized to update
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Data Source was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: An unexpeced error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        $ref: '#/components/requestBodies/DataSourceCreate'
+    delete:
+      tags:
+      - report data sources
+      summary: Delete existing Data Source
+      description: >-
+        Delete an existing data source. Can only be removed if there are no
+        report templates dependent on this data source.
+      operationId: deleteDataSource
+      responses:
+        '204':
+          description: OK
+        '401':
+          description: You are not authorized to update
+        '403':
+          description: Forbidden
+        '404':
+          description: Data Source was not found
+        '412':
+          description: >-
+            Validation failed. There are existing report templates dependent on
+            this data source.
+        '500':
+          description: An unexpeced error occurred
+  '/datasources/{datasourceId}/validate':
+    parameters:
+    - name: datasourceId
+      description: Data Source unique identifier
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      example: 6307c80a-ebe7-11e8-8eb2-f2801f1b9fd1
+    put:
+      tags:
+      - report data sources
+      summary: Validate data source
+      description: Validate that the server can connect to the requested data source
+      operationId: validateDataSource
+      responses:
+        '204':
+          description: OK
+        '400':
+          description: The data source is not valid because the server cannot access it.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: You are not authorized to validate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Data Source was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: An unexpeced error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  '/datasources/{datasourceId}/inactivate':
+    parameters:
+    - name: datasourceId
+      description: Data Source unique identifier
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      example: 6307c80a-ebe7-11e8-8eb2-f2801f1b9fd1
+    put:
+      tags:
+      - report data sources
+      summary: Inactivate the specified data source
+      description: >-
+        Inactivate the specified data source. To reactivate call 'GET
+        /datasources/{datasourceId}/validate'
+      operationId: inactivateDataSource
+      responses:
+        '204':
+          description: OK
+        '401':
+          description: You are not authorized to inactivate a data source
+        '403':
+          description: Forbidden
+        '404':
+          description: Data Source was not found
+        '500':
+          description: An unexpeced error occurred
+  /destinations:
+    get:
+      tags:
+      - report destinations
+      summary: Get a list of configured destinations
+      operationId: listConfiguredDestinations
+      description: Return the list of configured destinations.
+      parameters:
+      - name: page
+        in: query
+        required: false
+        description: The page to view.
+        schema:
+          type: integer
+          minimum: 0
+          format: int32
+          default: 0
+      - name: size
+        in: query
+        required: false
+        description: The size of a page.
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 20
+          format: int32
+          default: 10
+      - name: filterName
+        in: query
+        required: false
+        description: >-
+          A search query filter on destinations where [name] matches the
+          requested string. The search uses logical AND between the filter
+          parameters.
+        schema:
+          type: string
+          minLength: 0
+          maxLength: 255
+        style: form
+        explode: false
+        example: sftp
+      - name: filterStatus
+        in: query
+        required: false
+        description: >-
+          A search query filter on destinations where [status] matches the
+          request. The search uses logical AND between the filter parameters.
+        schema:
+          type: string
+          default: active
+          enum:
+          - active
+          - inactive
+        style: form
+        explode: false
+        example: active
+      - name: orderBy
+        in: query
+        required: false
+        style: form
+        explode: false
+        description: >-
+          a comma separated list of fields in their sort order. Ascending
+          order is assumed. Append desc after a field to indicate descending
+          order.
+        schema:
+          type: array
+          items:
+            type: string
+        examples:
+          oneFieldDescending:
+            summary: Example of a single sort field requested in descending order
+            value:
+            - name desc
+          multipleFields:
+            summary: Example of a multiple sort fields
+            value:
+            - name
+            - status
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Pagination:
+              description: Pagination header
+              schema:
+                $ref: '#/components/schemas/PaginationHeaderResponse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DestinationResponseHeaders'
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: You are not authorized to access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: An unexpeced error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+      - report destinations
+      summary: Add a report destination
+      operationId: addReportDestination
+      description: Create a new report destination
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DestinationCreateBase'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DestinationResponseBase'
+        '400':
+          description: Validation of destination failed. Destination cannot be accessed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: You are not authorized to create report destinations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: An unexpeced error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  '/destinations/{destinationId}':
+    parameters:
+    - name: destinationId
+      description: Destination unique identifier
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+        example: 41d66f26-e8e8-11e8-9f32-f2801f1b9fd1
+    get:
+      tags:
+      - report destinations
+      summary: Get the detail of a Report Destination
+      description: Return the detailed information for the requested Report Destination
+      operationId: getDestination
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DestinationResponseBase'      
+        '401':
+          description: You are not authorized to access
+        '403':
+          description: Forbidden
+        '404':
+          description: Destination was not found
+        '500':
+          description: An unexpeced error occurred
+    put:
+      tags:
+      - report destinations
+      summary: Replace existing Destination
+      description: Updates an existing Destination with the requested fields
+      operationId: updateDestination
+      responses:
+        '204':
+          description: OK
+        '401':
+          description: You are not authorized to update
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Destination was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: An unexpeced error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DestinationCreateBase'
+    delete:
+      tags:
+      - report destinations
+      summary: delete a report destination
+      description: Delete a report destination
+      operationId: removeDestination
+      responses:
+        '204':
+          description: OK
+        '401':
+          description: You are not authorized to delete report destinations
+        '403':
+          description: Forbidden
+        '404':
+          description: Destination was not found
+        '412':
+          description: Cannot be deleted because there are dependent items
+        '500':
+          description: An unexpeced error occurred
+  '/destinations/{destinationId}/validate':
+    parameters:
+    - name: destinationId
+      description: Destination unique identifier
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+        example: 41d66f26-e8e8-11e8-9f32-f2801f1b9fd1
+    put:
+      tags:
+      - report destinations
+      summary: Validate the Report Destination
+      operationId: validateDestination
+      description: >-
+        Test whether the destination is reachable from the report server. Sets
+        the status to 'active' when the destination can be reached. Otherwise
+        the status is 'inactive'.
+      responses:
+        '204':
+          description: OK
+        '401':
+          description: You are not authorized to invalidate a report destination
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Destination was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: An unexpeced error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  '/destinations/{destinationId}/inactivate':
+    parameters:
+    - name: destinationId
+      description: Destination unique identifier
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+        example: 41d66f26-e8e8-11e8-9f32-f2801f1b9fd1
+    put:
+      tags:
+      - report destinations
+      summary: Inactivate the Report Destination
+      operationId: inactivateReportDestination
+      description: >-
+        Change the status of a report destination to inactive. To reactivate the
+        report destination run the 'PUT /desitnations/{destinationId}/validate'
+        method
+      responses:
+        '204':
+          description: OK
+        '401':
+          description: You are not authorized to invalidate a report destination
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Destination was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: An unexpeced error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /notifications:
+    get:
+      tags:
+      - report notifications
+      summary: Get report notifications
+      description: Get all report notifications associated with the current user
+      operationId: getNotifications
+      parameters:
+      - name: page
+        in: query
+        required: false
+        description: The page to view.
+        schema:
+          type: integer
+          minimum: 0
+          format: int32
+          default: 0
+      - name: size
+        in: query
+        required: false
+        description: The size of a page.
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 20
+          format: int32
+          default: 10
+      - name: filterTitle
+        in: query
+        required: false
+        description: >-
+          A search query filter on the data set. This parameter will search on
+          both Title and Description. The search uses logical AND between the
+          search parameters.
+        schema:
+          type: string
+          minLength: 0
+          maxLength: 255
+        example: Agent
+      - name: filterStatus
+        in: query
+        required: false
+        description: >-
+          A search query filter on the data set. This parameter will search on
+          the status of the notifcation. The search uses logical AND between
+          the search parameters.
+        schema:
+          type: string
+          enum:
+          - unread
+          - read
+          - closed
+          default: unread
+        example: unread
+      - name: orderBy
+        in: query
+        required: false
+        style: form
+        explode: false
+        description: >-
+          a comma separated list of fields in their sort order. Ascending
+          order is assumed. Append desc after a field to indicate descending
+          order.
+        schema:
+          type: array
+          items:
+            type: string
+        examples:
+          oneFieldDescending:
+            summary: Example of a single sort field requested in descending order
+            value:
+            - title desc
+          multipleFields:
+            summary: Example of a multiple sort fields
+            value:
+            - title
+            - when desc
+            - status
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallbackNotifications'
+          headers:
+            X-Pagination:
+              description: Pagination header
+              schema:
+                $ref: '#/components/schemas/PaginationHeaderResponse'
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: You are not authorized to access notifications
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Notifications were not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: An unexpeced error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  '/notifications/{status}':
+    put:
+      tags:
+      - report notifications
+      summary: 'Mark all notifications as {status}'
+      description: 'Set the status of all notifciations to one of [read], [unread], [closed]'
+      operationId: setNotificationsStatus
+      parameters:
+      - name: status
+        description: 'the [status] to update all notifications to'
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - unread
+          - read
+          - closed
+      responses:
+        '204':
+          description: OK
+        '400':
+          description: Unknown status value
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: You are not authorized to update notification status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Notifications were not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: An unexpeced error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  '/notifications/{notificationId}/{status}':
+    put:
+      tags:
+      - report notifications
+      summary: 'Mark the specified notification with the requested {status}'
+      description: >-
+        Set the status of the specified notification to one of [read], [unread],
+        [closed]
+      operationId: setNotificationStatus
+      parameters:
+      - name: notificationId
+        description: the unique notification to apply the new status to
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: 48bf2d20-e99a-11e8-9f32-f2801f1b9fd1
+      - name: status
+        description: 'the [status] to update the specified notification with'
+        in: path
+        required: true
+        schema:
+          type: string
+          example: read
+          enum:
+          - unread
+          - read
+          - closed
+      responses:
+        '204':
+          description: OK
+        '400':
+          description: Unknown status value
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: You are not authorized to update notification status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Notification was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: An unexpeced error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /lookups/drivers:
+    get:
+      tags:
+      - report lookups
+      summary: Get a list of Database Drivers
+      description: Return a list of Database Drivers
+      operationId: getAllDrivers
+      parameters:
+      - name: page
+        in: query
+        required: false
+        description: The page to view.
+        schema:
+          type: integer
+          minimum: 0
+          format: int32
+          default: 0
+      - name: size
+        in: query
+        required: false
+        description: The size of a page.
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 20
+          format: int32
+          default: 10
+      - name: orderBy
+        in: query
+        required: false
+        style: form
+        explode: false
+        description: >-
+          a comma separated list of fields in their sort order. Ascending
+          order is assumed. Append desc after a field to indicate descending
+          order.
+        schema:
+          type: array
+          items:
+            type: string
+        examples:
+          oneFieldDescending:
+            summary: Example of a single sort field requested in descending order
+            value:
+            - name desc
+          multipleFields:
+            summary: Example of a multiple sort fields
+            value:
+            - name
+            - status
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                example:
+                - org.postgresql.Driver
+                - com.mysql.jdbc.Driver
+                - com.microsoft.jdbc.sqlserver.SQLServerDriver
+          headers:
+            X-Pagination:
+              description: Pagination header
+              schema:
+                $ref: '#/components/schemas/PaginationHeaderResponse'
+        '204':
+          description: No Content
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: You are not authorized to access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Export formats were not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: An unexpeced error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /lookups/exportFormats:
+    get:
+      tags:
+      - report lookups
+      summary: Get a list of supported file export formats
+      description: This returns a list of the supported report export formats
+      operationId: listFileExportFormats
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: A list of export formats
+                type: array
+                items:
+                  $ref: '#/components/schemas/LookupExportFormat'
+          headers:
+            X-Pagination:
+              description: Pagination header
+              schema:
+                $ref: '#/components/schemas/PaginationHeaderResponse'
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: You are not authorized to access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Export formats were not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: An unexpeced error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /lookups/tags:
+    get:
+      tags:
+      - report lookups
+      summary: Get a list of the registered Tags
+      description: This returns a list of the defined Tags in the system
+      operationId: getTags
+      parameters:
+      - name: page
+        in: query
+        required: false
+        description: The page to view.
+        schema:
+          type: integer
+          minimum: 0
+          format: int32
+          default: 0
+      - name: size
+        in: query
+        required: false
+        description: The size of a page.
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 20
+          format: int32
+          default: 10
+      - name: filterTag
+        in: query
+        required: false
+        description: A search query filter on tag.
+        schema:
+          type: string
+          minLength: 0
+          maxLength: 255
+        example: Agent%20Report
+      - name: orderBy
+        in: query
+        required: false
+        style: form
+        explode: false
+        description: >-
+          list of fields in their sort order. Ascending order is assumed. In
+          the format ($propertyname,)+[asc|desc]?. For example:-
+            ?orderBy=personName,desc
+            ?orderBy=name,asc&orderBy=numberOfHands,desc
+            ?orderBy=personName     defaults to asc
+        schema:
+          type: array
+          nullable: true
+          items:
+            type: string
+          minItems: 0
+        examples:
+          oneFieldDescending:
+            summary: Example of a single sort field requested in descending order
+            value:
+            - reportName desc
+          multipleFields:
+            summary: Example of a multiple sort fields
+            value:
+            - reportName
+            - tags
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LookupTags'
+          headers:
+            X-Pagination:
+              description: Pagination header
+              schema:
+                $ref: '#/components/schemas/PaginationHeaderResponse'
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: You are not authorized to access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Tags were not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: An unexpeced error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /lookups/connectionTypes:
+    get:
+      tags:
+      - report lookups
+      - report data sources
+      summary: Get Connection Type Lookup
+      operationId: listSupportedConnectionTypes
+      description: Return the list of supported connection types. Default is JDBC.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: A list of connection types
+                type: array
+                items:
+                  $ref: '#/components/schemas/LookupConnectionType'
+          headers:
+            X-Pagination:
+              description: Pagination header
+              schema:
+                $ref: '#/components/schemas/PaginationHeaderResponse'
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: You are not authorized to access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: An unexpeced error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /lookups/destinationTypes:
+    get:
+      tags:
+      - report lookups
+      - report destinations
+      operationId: listSupportedDestinationTypes
+      description: Reurn the list of supported destination types
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LookupDestinationType'
+          headers:
+            X-Pagination:
+              description: Pagination header
+              schema:
+                $ref: '#/components/schemas/PaginationHeaderResponse'
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: You are not authorized to access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: An unexpeced error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  requestBodies:
+    DataSourceCreate:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DataSourceCreate'
+      description: Detail to create a data source
+      required: true
+    DataSourceConnection:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DataSourceConnection'
+      description: Detail to validate a data source connection
+      required: true
+  schemas:
+    ErrorResponse:
+      description: Error response object to give more info with HTTP status code
+      type: object
+      required:
+      - message
+      properties:
+        message:
+          type: string
+    DestinationOptions:
+      description: A request for a report to be generated and streamed back to the client
+      type: object
+      required:
+      - destinationId
+      properties:
+        destinationId:
+          description: A destination UUID
+          type: string
+          format: uuid
+          example: 767518b7-2c4c-45e3-a520-bbbbe4a9f421
+        destinationParameters:
+          description: The list of parameters that map to the requested destination. For example, SMTP type destination could have `to, cc, bcc. subject, body`. More details on destination input field options on the `/lookups/destinationTypes` endpoint. 
+          type: array
+          items:
+            $ref: '#/components/schemas/TemplateParameterValue' 
+    TemplateGenerateRemoteRequestBase:
+      type: object
+      required:
+      - destinationOptions
+      - exportFormat
+      properties:
+        callbackUrl:
+          type: string
+          format: uri
+          example: 'https://myserver.com/notification/callback/here'
+          description: >-
+            This is the webhook url that will be called when the generation of
+            an asynchronous report is complete.
+        doNotRetry:
+          description: By default, if report generation fails, the system will retry a number of times. If you don't want any retries set this to true.
+          type: boolean
+          default: false    
+        exportFormat: 
+           $ref: '#/components/schemas/ExportFormat'
+        reportParameters:
+          description: The list of parameters that map to the requested report template
+          type: array
+          items:
+            $ref: '#/components/schemas/TemplateParameterValue'     
+        destinationOptions:
+            $ref: '#/components/schemas/DestinationOptions' 
+    TemplateGenerateRemoteRequest:
+      allOf:
+      - $ref: '#/components/schemas/TemplateGenerateRemoteRequestBase'
+    Templates:
+      type: object
+      description: >-
+        An array of report templates that includes each report's unique
+        identifier, name and list of tags.
+      properties:
+        templates:
+          type: array
+          items:
+            $ref: '#/components/schemas/Template'
+    templateId:
+      type: string
+      format: uuid
+      description: The UUID of the template. This is the primary identifier for a template.
+      example: aede8743-1bb8-407d-a975-77f3085a0d76        
+    Template:
+      type: object
+      properties:
+        templateId:
+          $ref: '#/components/schemas/templateId'
+        name:
+          type: string
+          minimum: 1
+          maximum: 255
+          description: Name of the report template
+          example: Agent Capital Balances
+        datasourceIds:
+          description: DatasourceIds for this report template
+          type: array
+          items:
+            type: string
+            format: uuid
+        tags:
+          $ref: '#/components/schemas/LookupTags'
+    TemplateDetail:
+      type: object
+      properties:
+        header:
+          $ref: '#/components/schemas/Template'
+        parameters:
+          type: array
+          items:
+            $ref: '#/components/schemas/TemplateParameter'
+    TemplateTagList:        
+      type: object
+      description: The document tags model for a given Document.
+      properties:
+        templateId:
+          $ref: '#/components/schemas/templateId'
+        tags:
+          $ref: '#/components/schemas/LookupTags'
+    TemplateParameter:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Unique parameter name.
+        helpText:
+          type: string
+          description: Help text for this parameter..
+        promptText:
+          type: string
+          description: Value to use for label on UI for this parameter.
+        displayFormat:
+          type: string
+          description: Format to use when displaying parameter.
+        defaultValue:
+          type: string
+          description: Default value for this parameter.
+        dataType:
+          type: string
+          description: 'Data type of the parameter, options include String, Float, Decimal, Date, DateTime, Object[] Integer, Integer, Boolean, Time'
+        controlType:
+          type: string
+          description: 'UI Control type of the parameter, options include LIST_BOX, TEXT_BOX, CHECK_BOX, RADIO_BUTTON'
+          example: LIST_BOX
+        group:
+          type: string
+          description: Grouping for display purposes of parameter.
+        mandatory:
+          type: boolean
+          description: Parameter mandatory or not.
+        allowMultipleValues:
+          type: boolean
+          description: for list controlType's whether user can select more than one values from selectionList
+        selectionList:
+          type: array
+          description: list of values user can select from for list controlType's (eg. LIST_BOX, RADIO_BUTTON)
+          items:
+            $ref: '#/components/schemas/SelectionChoice'
+    SelectionChoice:
+      type: object
+      description: ''
+      properties:
+        label:
+          type: string
+        value:
+          type: object
+    TemplateParameterValue:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Unique parameter name.
+        value:
+          type: string
+          description: Value for this parameter.
+    DataSources:
+      type: array
+      description: A list of data sources with only their metadata
+      items:
+        $ref: '#/components/schemas/DataSourceHeader'
+    DataSourceHeader:
+      type: object
+      description: Metadata regarding the data source
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: f00e14c0-e8f9-11e8-9f32-f2801f1b9fd1
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+          example: cdd database
+          description: Human readable short name for this data source
+        description:
+          type: string
+          description: Human readable description for this data source
+          minLength: 0
+          maxLength: 255
+          example: cdd postgres database connection
+        status:
+          type: boolean
+          default: true
+          description: >-
+            Status of the data source from the view of the report server. *
+            'active' - The data source can be connected to and utilized by
+            reports * 'inactive' - The data source can be connected to but not
+            utilized by reports
+
+    DataSourceConnection:
+      type: object
+      description: Information describing a connection to a data source
+      required:
+      - driver
+      - url
+      - username
+      - password
+      properties:
+        driver:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: Driver to use when connecting to the data source
+          example: org.postgresql.Driver (v42.2)
+        url:
+          type: string
+          minLength: 1
+          maxLength: 2083
+          description: The URL to DB hosting the data
+          example: 'jdbc:postgresql://localhost:5432/my_report_data_db'
+        username:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: The user name to use to access the data source hosted on the server
+          example: postgres
+        password:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: The user name to use to access the data source hosted on the server
+          example: postgres
+    DataSource:
+      type: object
+      description: A single data source
+      properties:
+        header:
+          $ref: '#/components/schemas/DataSourceHeader'
+        connection:
+          $ref: '#/components/schemas/DataSourceConnection'
+    DataSourceCreate:
+      type: object
+      description: Create or update a data source
+      required:
+      - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+          example: cdd database
+          description: Human readable short name for this data source
+        description:
+          type: string
+          description: Human readable description for this data source
+          minLength: 0
+          maxLength: 255
+          example: cdd postgres database connection
+        connection:
+          $ref: '#/components/schemas/DataSourceConnection'
+    ExportFormat:
+      type: string
+      enum: [PDF, XLSX, HTML]
+    LookupExportFormat:
+      type: object
+      description: A valid export format
+      properties:
+        name:
+          $ref: '#/components/schemas/ExportFormat'
+        mediatype:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: application/pdf
+    LookupTags:
+      description: A list of tags
+      type: array
+      items:
+        $ref: '#/components/schemas/LookupTag'
+      example:
+      - tag: kyc
+      - tag: oc
+      - tag: regulatory
+    LookupTag:
+      description: A single Tag
+      required:
+      - tag
+      type: object
+      properties:
+        tag:
+          type: string
+          minLength: 1
+          maxLength: 255
+    LookupConnectionType:
+      description: A single connection type
+      properties:
+        connectionTypeName:
+          type: string
+          example: 'JDBC'
+        description:
+          type: string
+          example: Java Database Connectivity for accessing DBs
+    DestinationResponseHeaders:
+      description: 'A list of destinations, but only the basic object required for UI'
+      type: array
+      items:
+        $ref: '#/components/schemas/DestinationResponseHeader'
+    DestinationResponseHeader:
+      description: >-
+        A single report destination, only the basic header object required for
+        the UI
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: b9acd476-e8df-11e8-9f32-f2801f1b9fd1
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: The sftp server
+        description:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: our shared sftp server
+        status:
+          type: string
+          default: inactive
+          enum:
+          - active
+          - inactive
+          description: >
+            status of the destination from the report server: * 'active' - The
+            destination can be accessed and used by the report server *
+            'inactive' - The destination cannot be accessed by the report
+            server.
+        downloadable: 
+          type: boolean
+          description: Indicates whether a report generated to this `destination` is downloadable via `Download a report` endpoint or not.
+          default: false
+    DestinationResponseBase:
+      description: Base class for a single destination
+      required:
+      - destinationType
+      properties:
+        destinationType:
+          $ref: '#/components/schemas/DestinationType'
+        header:
+          $ref: '#/components/schemas/DestinationResponseHeader'
+      discriminator:
+        propertyName: destinationType
+        mapping:
+          STREAM: '#/components/schemas/DestinationResponseSTREAM'
+          SFTP: '#/components/schemas/DestinationResponseSFTP'
+          DFS: '#/components/schemas/DestinationResponseDFS'
+          SMTP: '#/components/schemas/DestinationResponseSMTP'
+          WEB: '#/components/schemas/DestinationResponseWebEndpoint'
+    DestinationResponseSTREAM:      
+      description: A single destination that is used for streaming generated report response
+      allOf:
+      - $ref: '#/components/schemas/DestinationResponseBase'
+    DestinationResponseSFTP:
+      description: A single destination that is used as a sink when generating a report
+      allOf:
+      - $ref: '#/components/schemas/DestinationResponseBase'
+    DestinationResponseSMTP:
+      description: >-
+        Object with only the fields required to create or update a report Email
+        destination
+      allOf:
+      - $ref: '#/components/schemas/DestinationResponseBase'
+      - properties:
+          from_address:
+            description: the email address that sends the email
+            type: string
+            format: email
+            example: reports@bigbaobab.org
+    DestinationResponseDFS:
+      description: >-
+        Object with only the fields required to create or update a Windows
+        shared folder (DFS) destination
+      allOf:
+      - $ref: '#/components/schemas/DestinationResponseBase'
+    DestinationResponseWebEndpoint:
+      description: >-
+        Object with only the fields required to create or update a Web endpoint
+        destination
+      allOf:
+      - $ref: '#/components/schemas/DestinationResponseBase'
+    DestinationCreateHeader:
+      description: Metadata fields required to create or update a report destination
+      properties:
+        name:
+          type: string
+          description: the name of the destination
+          minLength: 1
+          maxLength: 255
+          example: The sftp server
+        description:
+          type: string
+          description: the description of the destination
+          minLength: 1
+          maxLength: 255
+          example: our shared sftp server
+        securityProtocol:
+          description: >-
+            Does this server required TLS, SSL, SSH to access or have no
+            security?
+          type: string
+          enum:
+          - none
+          - tls
+          - ssl
+          - ssh
+          default: none
+          example: ssl
+        timeout:
+          description: the server timeout in milliseconds when trying to connect
+          type: integer
+          format: int32
+          minimum: 5000
+          maximum: 2147483647
+          default: 100000
+          example: 100000  
+        downloadable: 
+          type: boolean
+          description: Indicates whether a report generated to this `destination` is downloadable via `Download a report` endpoint or not.
+          default: false
+    DestinationCreateBase:
+      description: Base class for the destination create call
+      required:
+      - destinationType
+      properties:
+        destinationType:
+          $ref: '#/components/schemas/DestinationType'
+        header:
+          $ref: '#/components/schemas/DestinationCreateHeader'
+      discriminator:
+        propertyName: destinationType
+        mapping:
+          SFTP: '#/components/schemas/DestinationCreateSFTP'
+          DFS: '#/components/schemas/DestinationCreateDFS'
+          SMTP: '#/components/schemas/DestinationCreateSMTP'
+    DestinationType:
+          type: string
+          enum:
+          - SFTP
+          - STREAM
+          - DFS
+          - SMTP
+          - WEB    
+    DestinationCreateSFTP:
+      description: >-
+        Object with only the fields required to create or update a report
+        SFTP/FTP/FTPS destination
+      allOf:
+      - $ref: '#/components/schemas/DestinationCreateBase'   
+      - type: object
+        required:
+          - host
+          - user
+          - password
+        properties:
+          host:
+            type: string
+            description: the destination server address
+            minLength: 1
+            maxLength: 2083
+            example: 'sftp://files.myhost.com'
+          path:
+            description: the route (directory) on the server host that should be accessed
+            type: string
+            minLength: 0
+            maxLength: 2083
+            example: /reports/tilkynna
+          port:
+            type: integer
+            format: int32
+            description: the destination server port
+            minimum: 1
+            maximum: 65535
+            default: 22
+            example: 22
+          user:
+            type: string
+            description: the username to use when connecting to the server
+            minLength: 1
+            maxLength: 50
+            example: sftp_admin
+          password:
+            type: string
+            description: the password to use when connecting to the server
+            minLength: 1
+            maxLength: 255
+            example: sftp_admin_password
+    DestinationCreateSMTP:
+      description: >-
+        Object with only the fields required to create or update a report Email
+        destination
+      allOf:
+      - $ref: '#/components/schemas/DestinationCreateBase'
+      - type: object
+        required:
+          - host
+          - user
+          - password
+          - fromAddress
+        properties:
+          host:
+            type: string
+            description: the destination server address
+            minLength: 1
+            maxLength: 2083
+            example: 'sftp://files.myhost.com'
+          port:
+            type: integer
+            format: int32
+            description: the destination server port
+            minimum: 1
+            maximum: 65535
+            default: 22
+            example: 22
+          user:
+            type: string
+            description: the username to use when connecting to the server
+            minLength: 1
+            maxLength: 50
+            example: sftp_admin
+          password:
+            type: string
+            description: the password to use when connecting to the server
+            minLength: 1
+            maxLength: 255
+            example: sftp_admin_password
+          fromAddress:
+            description: the email address that sends the email
+            type: string
+            minLength: 1
+            maxLength: 254
+            example: reports@tilkynna.org
+    DestinationCreateDFS:
+      description: >-
+        Object with only the fields required to create or update a Windows
+        shared folder (DFS) destination
+      allOf:
+      - $ref: '#/components/schemas/DestinationCreateBase'
+      - type: object
+        required:
+          - host
+          - user
+          - password
+        properties:
+          host:
+            type: string
+            description: the destination server address
+            minLength: 1
+            maxLength: 2083
+            example: 'smb://files.myhost.com'
+          port:
+            type: integer
+            format: int32
+            description: the destination server port
+            minimum: 1
+            maximum: 65535
+            default: 139
+            example: 139
+          user:
+            type: string
+            description: the username to use when connecting to the server
+            minLength: 1
+            maxLength: 50
+            example: sftp_admin
+          password:
+            type: string
+            description: the password to use when connecting to the server
+            minLength: 1
+            maxLength: 255
+            example: sftp_admin_password
+    LookupDestinationType:
+      description: supported destination type
+      type: object
+      properties:
+        destinationType:
+          $ref: '#/components/schemas/DestinationType'
+        inputFields:
+          description: Comma separated list of input fields for destination type. For example destination type SMTP requires inputFields `to, cc, bcc, subject, body` where as destination type SFTP requires inputFields `path`
+          type: string
+      example:
+        - destinationType: STREAM
+        - destinationType: SFTP
+          inputFields: path
+        - destinationType: S3
+          inputFields: path  
+        - destinationType: SMTP
+          inputFields: to, cc, bcc, subject, body
+    PaginationHeaderResponse:
+      description: >-
+        This is the standard response for requests that have paginated
+        collections
+      type: object
+      properties:
+        total:
+          type: integer
+          format: int32
+          minimum: 1
+          description: The total number of pages in the resultset
+        count:
+          type: integer
+          format: int32
+          minimum: 1
+          description: The total number of results in the resultset
+        size:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 20
+          default: 10
+          description: >-
+            The number items to include in a page of results. The page size for
+            the resultset
+        current:
+          type: integer
+          format: int32
+          minimum: 1
+          description: >-
+            The position of the page in the paged resultset that is being
+            returned
+        first:
+          type: string
+          format: url
+          description: >-
+            The link to the first page of results containing [size] results.
+            This link includes the page, size, filter, orderBy and fields query
+            parameters.
+        last:
+          type: string
+          format: url
+          description: >-
+            The link to the last page of results containing [size] results. This
+            link includes the page, size, filter, orderBy and fields query
+            parameters. If this is the first page in the resultset then this
+            will be [null].
+        prev:
+          type: string
+          format: url
+          description: >-
+            The link to the previous page of results containing [size] results.
+            This link includes the page, size, filter, orderBy and fields query
+            parameters. If this is the first page in the resultset then this
+            will be [null].
+        next:
+          type: string
+          format: url
+          description: >-
+            The link to the next page of results containing [size] results. This
+            link includes the page, size, filter, orderBy and fields query
+            parameters. If this is the last page in the resultset then this will
+            be [null].
+    CallbackNotifications:
+      description: A list of report notifications for the signed-in user
+      type: array
+      items:
+        $ref: '#/components/schemas/CallbackNotification'
+    CallbackNotificationId:
+      properties:
+        id:
+          description: >-
+            this unique identifier allows management of the notification
+            subscription
+          type: string
+          format: uuid
+          example: 48bf2d20-e99a-11e8-9f32-f2801f1b9fd1
+    CallbackNotification:
+      type: object
+      properties:
+        id:
+          description: >-
+            this unique identifier allows management of the notification
+            subscription
+          type: string
+          format: uuid
+          example: 48bf2d20-e99a-11e8-9f32-f2801f1b9fd1
+        title:
+          description: a human readable title for the report generation notification
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: The Agent Payment report has been generated and exported
+        message:
+          description: >-
+            a human readable message regarding the state of the report
+            generation
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: 'Destination: FTP Site'
+        when:
+          description: the date and time that the server generated this report notification
+          type: string
+          format: date-time
+          example: '14:32 13-11-2018'
+        target:
+          description: the uri for the generated report file
+          type: string
+          format: uri
+          example: 'file:///d:/Reports/agentPaymentReport_201811131432.pdf'
+        status:
+          description: >-
+            the status of this notification. It starts as an unread report
+            notificiation and then become read once the user has viewed it. Then
+            it can enter a final state of closed if the user no longer wants to
+            see it.
+          type: string
+          default: unread
+          example: unread
+          enum:
+          - unread
+          - read
+          - closed
+      required:
+      - id
+      - title
+      - message
+      - when
+      - status
+    ReportStatus:
+      type: object
+      properties:
+        correlationId:
+          description: >-
+            The unique identifier of the report
+          type: string
+          format: uuid
+          example: 48bf2d20-e99a-11e8-9f32-f2801f1b9fd1
+        status:
+          type: string
+          default: pending
+          example: pending
+          enum:
+          - pending
+          - started
+          - failed
+          - finished
+          description: >  
+            Requested Report Status:
+              * `pending`: Your request for a report has been received but no processing of the report has started yet. 
+              * `started`: Generation of the report has started and is currently in progress.
+              * `failed`: Something has gone wrong with the generation of the report, try again or contact admin. 
+              * `finished`: Generation of report has finished, and for a request made to a downloadable destination you can download this report 
+        url:
+          description: >-
+            Where to download and/or get the state of this report's generation
+          type: string
+          example: 'http://localhost:8080/api/reports/48bf2d20-e99a-11e8-9f32-f2801f1b9fd1'
+        target:
+          description: Where to download and/or get the state of this report's generation
+          type: string
+          example: >-
+             sftp://fileserver.gbl.co.za/reports/48bf2d20-e99a-11e8-9f32-f2801f1b9fd1.pdf
+      required:
+      - correlationId
+      - status

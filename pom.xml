@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    *************************************************
+    Copyright (c) 2019, Grindrod Bank Limited
+    License MIT: https://opensource.org/licenses/MIT
+    **************************************************
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.tilkynna</groupId>
+	<artifactId>tilkynna</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<name>tilkynna</name>
+	<description>Utility Reporting</description>
+	
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.1.4.RELEASE</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<java.version>1.8</java.version>
+
+		<!-- The main class to start by executing java -jar -->
+	    <start-class>org.tilkynna.TilkynnaApplication</start-class>
+	    <swagger-annotations-version>1.5.8</swagger-annotations-version>
+        <springfox-version>2.8.0</springfox-version>
+	</properties>
+
+	<dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>           
+        </dependency>
+        
+        <!-- dependencies are needed for the server api being generated from swagger spec -->
+        <dependency>
+          <groupId>io.swagger</groupId>
+          <artifactId>swagger-annotations</artifactId>
+          <version>${swagger-annotations-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger2</artifactId>
+            <version>${springfox-version}</version>
+        </dependency>
+        
+	    <dependency>
+	        <groupId>org.projectlombok</groupId>
+	        <artifactId>lombok</artifactId>
+	        <version>1.18.4</version>
+        </dependency>
+		
+		<!-- BIRT -->
+		<dependency>
+	    	<groupId>org.eclipse.birt.report</groupId>
+			<artifactId>org.eclipse.birt.report.engine.emitter.csv</artifactId>
+	      	<version>1.0.0.201110121016</version>
+	    </dependency>
+		<dependency>
+			<groupId>org.eclipse.birt.runtime</groupId>
+			<artifactId>org.eclipse.birt.runtime</artifactId>
+			<version>4.6.0-20160607</version>	
+			<scope>provided</scope>		
+		</dependency> 
+		
+		<!-- DB -->
+		<dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>       
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>  
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        
+        <!-- Destination Integrations  -->
+		<dependency>
+			<groupId>org.springframework.integration</groupId>
+			<artifactId>spring-integration-core</artifactId>
+		</dependency>
+        <dependency>
+			<groupId>org.springframework.integration</groupId>
+			<artifactId>spring-integration-sftp</artifactId>
+		</dependency>
+		
+		<!-- Security -->
+        <dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security.oauth.boot</groupId>
+			<artifactId>spring-security-oauth2-autoconfigure</artifactId>
+			<version>2.1.3.RELEASE</version>
+		</dependency>		
+		
+        <dependency>
+        	<groupId>org.springframework.boot</groupId>
+        	<artifactId>spring-boot-configuration-processor</artifactId>
+        	<optional>true</optional>
+        </dependency>
+		
+        <!-- ========================================================== -->
+        <!-- TESTING -->
+        <!-- ========================================================== -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>1.10.6</version>
+            <scope>test</scope>
+        </dependency>
+	</dependencies>
+	
+	<build>
+		<finalName>tilkynna</finalName>		
+		<plugins>
+		    <!-- SWAGGER CODE GEN -->
+		    <!-- activate the plugin -->
+		    <plugin>
+			    <groupId>org.openapitools</groupId>
+			    <artifactId>openapi-generator-maven-plugin</artifactId>
+			    <version>3.3.4</version>
+			    <executions>
+			        <execution>
+			            <goals>
+			                <goal>generate</goal>
+			            </goals>
+			            <configuration>
+			                <inputSpec>${project.basedir}/doc/tilkynna_api.yml</inputSpec>
+			                <output>${project.basedir}/srcgen</output>
+			                <generatorName>spring</generatorName>
+			                <configOptions>
+			                    <!-- 
+			                         To find out what configOptions are available, run:
+			                         java -jar openapi-generator-cli.jar config-help -l spring
+			                         or check https://github.com/OpenAPITools/openapi-generator/blob/master/docs/generators/spring.md
+			                     -->
+			                    <interfaceOnly>true</interfaceOnly>
+			                    <java8>true</java8>
+			                    <dateLibrary>java8</dateLibrary>
+			                    <useBeanValidation>true</useBeanValidation>
+			                    
+			                    <delegatePattern>true</delegatePattern>
+                                <delegateMethod>true</delegateMethod>
+			                    
+			                    <singleContentTypes>false</singleContentTypes>
+			                    
+			                    <hateoas>false</hateoas>
+			                </configOptions>
+			                
+			                <library>spring-boot</library>
+			                
+			                <templateDirectory>${project.basedir}/src/main/resources/swagger/</templateDirectory>
+			                
+			                <!-- <modelPackage></modelPackage>
+			                <apiPackage></apiPackage> -->
+			                <!-- <apiPackage>com.example.demo.petstore.api</apiPackage>
+                            <modelPackage>com.example.demo.petstore.api.model</modelPackage> -->
+                            
+                            <!-- <modelNameSuffix>DTO</modelNameSuffix> does not work as our classes for inheretance are named in spec -->
+			                
+			                <generateApis>true</generateApis>
+			                <generateApiTests>false</generateApiTests>
+			                <generateApiDocumentation>false</generateApiDocumentation>
+			                <generateModels>true</generateModels>
+			                <generateModelTests>false</generateModelTests>
+			                <generateModelDocumentation>false</generateModelDocumentation>
+			                <generateSupportingFiles>true</generateSupportingFiles> <!-- must be true if supportingFilesToGenerate set -->
+			                <supportingFilesToGenerate>ApiUtil.java</supportingFilesToGenerate>
+			            </configuration>
+			        </execution>
+			    </executions>
+			</plugin>
+		
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			    <configuration>  <!-- added -->
+			     	<layout>ZIP</layout>  <!-- to use PropertiesLauncher -->
+			     	<!-- https://docs.spring.io/spring-boot/docs/current/reference/html/executable-jar.html -->
+			     	<!-- 
+			     		Don't package the BIRT jar's with SpringBoot add as they are corrupt, 
+			     		required BIRT dependencies are now under the libs-no-repo folder
+			     	-->
+	            	<excludeGroupIds>org.eclipse.birt.runtime</excludeGroupIds>
+		    		<excludeArtifactIds>org.eclipse.birt.runtime</excludeArtifactIds>
+	            </configuration>
+			</plugin>
+
+            <!-- TODO: this really needs to be in the artifactory eventually -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>install-external-birt-csv-emitter</id>
+                        <phase>clean</phase>
+                        <configuration>
+                            <repositoryLayout>default</repositoryLayout>
+                            <groupId>org.eclipse.birt.report</groupId>
+                            <artifactId>org.eclipse.birt.report.engine.emitter.csv</artifactId>
+                            <version>1.0.0.201110121016</version>
+                            <file>${project.basedir}/libs-no-repo/org.eclipse.birt.report.engine.emitter.csv_1.0.0.201110121016.jar</file>
+                            <packaging>jar</packaging>
+                            <generatePom>true</generatePom>
+                        </configuration>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>            
+            
+		   	<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>				
+				<configuration>
+					<additionalClasspathElements>
+						<!-- <additionalClasspathElement>${project.basedir}/libs-no-repo</additionalClasspathElement> -->						
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/com.ibm.icu_56.1.0.v201601250100.jar</additionalClasspathElement>                                                 
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.enablement.ibm_1.1.0.201603142002.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/com.lowagie.text_2.1.7.v201004222200.jar</additionalClasspathElement>                                             
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.enablement.ibm.db2_1.1.0.201603142002.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/flute.jar</additionalClasspathElement>                                                                            
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.enablement.ibm.db2.iseries_1.1.0.201603142002.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/javax.wsdl_1.5.1.v201012040544.jar</additionalClasspathElement>                                                   
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.enablement.ibm.db2.iseries.dbdefinition_1.1.0.201603142002.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/javax.xml_1.3.4.v201005080400.jar</additionalClasspathElement>                                                    
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.enablement.ibm.db2.luw_1.1.0.201603142002.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/javax.xml.stream_1.0.1.v201004272200.jar</additionalClasspathElement>                                             
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.enablement.ibm.db2.luw.dbdefinition_1.1.0.201603142002.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/net.sourceforge.lpg.lpgjavaruntime_1.1.0.v201004271650.jar</additionalClasspathElement>                           
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.enablement.ibm.db2.zseries_1.1.0.201603142002.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.apache.batik.bridge_1.6.0.v201011041432.jar</additionalClasspathElement>                                      
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.enablement.ibm.db2.zseries.dbdefinition_1.1.0.201603142002.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.apache.batik.css_1.6.0.v201011041432.jar</additionalClasspathElement>                                         
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.enablement.ibm.informix_1.1.0.201603142002.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.apache.batik.dom_1.6.1.v201505192100.jar</additionalClasspathElement>                                         
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.enablement.ibm.informix.dbdefinition_1.1.0.201603142002.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.apache.batik.dom.svg_1.6.0.v201011041432.jar</additionalClasspathElement>                                     
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.enablement.msft.sqlserver_1.1.0.201603142002.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.apache.batik.ext.awt_1.6.0.v201011041432.jar</additionalClasspathElement>                                     
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.enablement.msft.sqlserver.dbdefinition_1.1.0.201603142002.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.apache.batik.parser_1.6.0.v201011041432.jar</additionalClasspathElement>                                      
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.enablement.mysql_1.1.0.201603142002.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.apache.batik.pdf_1.6.0.v201105071520.jar</additionalClasspathElement>                                         
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.enablement.mysql.dbdefinition_1.1.0.201603142002.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.apache.batik.svggen_1.6.0.v201011041432.jar</additionalClasspathElement>                                      
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.enablement.oda.ws_1.3.0.201603142002.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.apache.batik.transcoder_1.6.0.v201011041432.jar</additionalClasspathElement>                                  
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.enablement.oda.xml_1.3.0.201603142002.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.apache.batik.util_1.6.0.v201011041432.jar</additionalClasspathElement>                                        
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.enablement.oracle_1.1.0.201603142002.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.apache.batik.util.gui_1.6.0.v201011041432.jar</additionalClasspathElement>                                    
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.enablement.oracle.dbdefinition_1.1.0.201603142002.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.apache.batik.xml_1.6.0.v201011041432.jar</additionalClasspathElement>                                         
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.enablement.postgresql_1.2.0.201603142002.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.apache.commons.codec_1.6.0.v201305230611.jar</additionalClasspathElement>                                     
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.enablement.postgresql.dbdefinition_1.1.0.201603142002.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.apache.commons.logging_1.1.1.v201101211721.jar</additionalClasspathElement>                                   
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.enablement.sap.maxdb_1.1.0.201603142002.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.apache.derby_10.11.1.1_v201605202053.jar</additionalClasspathElement>                                         
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.enablement.sap.maxdb.dbdefinition_1.1.0.201603142002.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.apache.lucene.core_3.5.0.v20120725-1805.jar</additionalClasspathElement>                                     
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.modelbase.dbdefinition_1.1.0.201603142002.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.apache.poi_3.9.0.v201405241750.jar</additionalClasspathElement>                                               
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.modelbase.derby_1.1.0.201603142002.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.apache.xerces_2.9.0.v201101211617.jar</additionalClasspathElement>                                            
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.modelbase.sql_1.1.0.201603142002.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.apache.xml.resolver_1.2.0.v201005080400.jar</additionalClasspathElement>                                      
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.modelbase.sql.query_1.2.0.201603142002.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.apache.xml.serializer_2.7.1.v201005080400.jar</additionalClasspathElement>                                    
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.sqltools.data.core_1.3.0.201603142002.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.birt.report.engine.emitter.csv_1.0.0.201110121016.jar</additionalClasspathElement>                    
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.sqltools.parsers.sql_1.1.0.201603142002.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.birt.runtime_4.6.0-20160607.jar</additionalClasspathElement>                                          
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.sqltools.parsers.sql.lexer_1.1.0.201603142002.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.core.contenttype_3.5.100.v20160418-1621.jar</additionalClasspathElement>                              
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.sqltools.parsers.sql.query_1.3.0.201603142002.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.core.expressions_3.5.100.v20160418-1621.jar</additionalClasspathElement>                              
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.sqltools.result_1.2.0.201603142002.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.core.filesystem_1.6.0.v20160503-1608.jar</additionalClasspathElement>                                 
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.emf.common_2.12.0.v20160420-0247.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.core.jobs_3.8.0.v20160509-0411.jar</additionalClasspathElement>                                       
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.emf.ecore_2.12.0.v20160420-0247.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.core.resources_3.11.0.v20160503-1608.jar</additionalClasspathElement>                                 
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.emf.ecore.change_2.11.0.v20160420-0247.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.core.runtime_3.12.0.v20160606-1342.jar</additionalClasspathElement>                                   
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.emf.ecore.xmi_2.12.0.v20160420-0247.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.connectivity_1.13.0.201603142002.jar</additionalClasspathElement>                           
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.equinox.app_1.3.400.v20150715-1528.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.connectivity.apache.derby_1.1.0.201603142002.jar</additionalClasspathElement>              
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.equinox.common_3.8.0.v20160509-1230.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.connectivity.apache.derby.dbdefinition_1.1.0.201603142002.jar</additionalClasspathElement>  
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.equinox.preferences_3.6.0.v20160120-1756.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.connectivity.console.profile_1.1.0.201603142002.jar</additionalClasspathElement>            
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.equinox.registry_3.6.100.v20160223-2218.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.connectivity.dbdefinition.genericJDBC_1.1.0.201603142002.jar</additionalClasspathElement>   
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.help_3.7.0.v20160602-1307.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.connectivity.db.generic_1.1.0.201603142002.jar</additionalClasspathElement>                 
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.orbit.mongodb_2.10.1.v20130422-1135.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.connectivity.oda_3.5.0.201603142002.jar</additionalClasspathElement>                        
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.osgi_3.11.0.v20160603-1336.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.connectivity.oda.consumer_3.3.0.201603142002.jar</additionalClasspathElement>               
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.osgi.services_3.5.100.v20160504-1419.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.connectivity.oda.design_3.4.0.201603142002.jar</additionalClasspathElement>                 
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.update.configurator_3.3.400.v20160506-0750.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.connectivity.oda.flatfile_3.2.0.201603142002.jar</additionalClasspathElement>               
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.mozilla.javascript_1.7.5.v201504281450.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.connectivity.oda.profile_3.3.0.201603142002.jar</additionalClasspathElement>                
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.w3c.css.sac_1.3.1.v200903091627.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.connectivity.sqm.core_1.3.0.201603142002.jar</additionalClasspathElement>                   
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.w3c.dom.events_3.0.0.draft20060413_v201105210656.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.enablement.hsqldb_1.1.0.201603142002.jar</additionalClasspathElement>                       
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.w3c.dom.smil_1.0.1.v200903091627.jar</additionalClasspathElement>
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.eclipse.datatools.enablement.hsqldb.dbdefinition_1.1.0.201603142002.jar</additionalClasspathElement>          
+						<additionalClasspathElement>${project.basedir}/libs-no-repo/org.w3c.dom.svg_1.1.0.v201011041433.jar</additionalClasspathElement>						
+					</additionalClasspathElements>
+				</configuration>
+			</plugin>
+        </plugins>
+	</build>
+</project>
