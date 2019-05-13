@@ -50,8 +50,7 @@
 					<excludes>						
 						<!-- folders to ignore -->
 						<exclude>srcgen/**</exclude>	
-						<exclude>.mvn/**</exclude>		
-						<exclude>helm-chart/**</exclude>
+						<exclude>.mvn/**</exclude>
 						<exclude>doc/**</exclude>
 						<exclude>.circleci/**</exclude>
 						<exclude>scripts/**</exclude>
@@ -67,7 +66,6 @@
 						<exclude>**/*.csv</exclude>
 						<exclude>**/*.jpeg</exclude>
 						<exclude>**/*.dockerignore</exclude>
-						<exclude>**/*.helmignore</exclude>
 						<exclude>**/*.factorypath</exclude>	
 						<exclude>**/*.conf</exclude>	
 						<exclude>**/*.attack</exclude>		

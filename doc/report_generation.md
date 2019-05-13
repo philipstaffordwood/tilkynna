@@ -28,7 +28,7 @@ The `generated_report` holds all data related to report requests. This includes
   - **FAILED**: to check if an retry might be needed, and move report request to PENDING again
   - **STARTED**: to check if there are any long running reports 
 
-- The schedule's for above monitors can be configured in your application.yaml (or equivalent values file when using the helm chart.). 
+- The schedule's for above monitors can be configured in your application.yaml 
 
   ```yaml
   tilkynna:
@@ -58,7 +58,7 @@ The `generated_report` holds all data related to report requests. This includes
 
     **monitorStalledRequests:**  relate to the scheduler for checking if there are any requests stuck in the STARTED status 
 
-- The number of retries which the server will do can also be  configured in your application.yaml (or equivalent values file when using the helm chart.). 
+- The number of retries which the server will do can also be  configured in your application.yaml
 
   ```yaml
   tilkynna:
