@@ -48,8 +48,8 @@ docker-compose -p tilkynna up
 
 ## Using the API 
 
-[Via CLI curl commands](docs/quickstart_using_api/via_cli_curl.md)
-[Using Postman GUI Tool](docs/quickstart_using_api/via_postman_gui.md)
+- [Via CLI curl commands](doc/quickstart_using_api/via_cli_curl.md)
+- [Using Postman GUI Tool](doc/quickstart_using_api/via_postman_gui.md)
 
 ## To undeploy everything:
 
