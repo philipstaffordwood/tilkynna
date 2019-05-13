@@ -1,13 +1,13 @@
 {
 	"info": {
-		"_postman_id": "e2bb3023-3548-4cf6-a967-54318825ccf8",
+		"_postman_id": "1364675a-377f-4b60-b143-ad7893e4cdf0",
 		"name": "Tilkynna Quickstart",
 		"description": "Postman collection for interacting with the Tilkynna service, an enterprise grade utility-style report server.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
-			"name": "Session Oauth Token",
+			"name": "Get an authentication token in order to get API access",
 			"item": [
 				{
 					"name": "Get Key Session Token",
@@ -83,83 +83,35 @@
 					},
 					"response": []
 				}
-			]
-		},
-		{
-			"name": "1. Initial Requests",
-			"item": [
-				{
-					"name": "{{host}}:{{port}}/",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"Status code is 404\", function () {",
-									"    pm.response.to.have.status(404);",
-									"});"
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								""
-							]
-						},
-						"description": "IsServerUp"
-					},
-					"response": []
-				}
 			],
-			"description": "This ensure that the Tilkynna App is all started correctly. The first hit to server to generate a report takes longer as the BIRT engine needs to startup. "
-		},
-		{
-			"name": "1. Actuator Checks",
-			"item": [
+			"event": [
 				{
-					"name": "actuator/health",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/actuator/health",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"actuator",
-								"health"
-							]
-						}
-					},
-					"response": []
+					"listen": "prerequest",
+					"script": {
+						"id": "38003d94-81ea-4daa-8f10-4b77dae42c2b",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "cc4388dc-b5a2-4c03-ab49-e0f2cf790d50",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
 				}
 			]
 		},
 		{
-			"name": "2. DATASOURCES",
+			"name": "Quickstart Steps",
 			"item": [
 				{
-					"name": "Create Datasource",
+					"name": "Create a data source. ",
 					"event": [
 						{
 							"listen": "test",
@@ -169,21 +121,181 @@
 									"pm.test(\"Status code is 201\", function () {",
 									"    pm.response.to.have.status(201);",
 									"});",
-									"pm.test(\"Response time is less than 8000ms\", function () {",
-									"    pm.expect(pm.response.responseTime).to.be.below(8000);",
-									"});",
 									"",
 									"pm.test(\"Check header.status is true.\", function () {",
 									"    var jsonData = pm.response.json();",
 									"    pm.expect(jsonData.header.status).to.eql(true);",
 									"});",
 									"",
-									"pm.test(\"Check header.id returned. Set datasourceId environment variable.\", function () {",
+									"pm.test(\"Check header.id returned. Set tilkynnaDatasourceId environment variable.\", function () {",
 									"    var jsonData = pm.response.json();",
 									"    pm.expect(jsonData).to.have.property('header');",
-									"    pm.environment.set(\"datasourceId\", jsonData.header.id);",
+									"    pm.environment.set(\"tilkynnaDatasourceId\", jsonData.header.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"tilkynna db\",\n  \"description\": \"tilkynna db\",\n  \"connection\": {\n    \"driver\": \"org.postgresql.Driver\",\n    \"url\": \"jdbc:postgresql://<change_me>:5432/tilkynna\",\n    \"username\": \"postgres\",\n    \"password\": \"postgres\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/datasources",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"datasources"
+							]
+						},
+						"description": "We use the Tilkynna database for this sample report. TilkynnaDB_Datasource"
+					},
+					"response": []
+				},
+				{
+					"name": "Upload a report template.",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4c046214-9a60-4028-9448-96724acba480",
+								"exec": [
+									"pm.test(\"Response is CREATED\", function () {",
+									"    pm.response.to.have.status(201);",
 									"});",
 									"",
+									"pm.test(\"Check template ID returned. Set template ID environment variable.\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('templateId');",
+									"    pm.environment.set(\"tilkynnaSampleReportTemplateId\", jsonData.templateId);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": ""
+								},
+								{
+									"key": "templateName",
+									"value": "Tilkynna Sample Report",
+									"type": "text"
+								},
+								{
+									"key": "tags",
+									"value": "tilkynnaDatasources",
+									"type": "text"
+								},
+								{
+									"key": "datasourceIds",
+									"value": "{{tilkynnaDatasourceId}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/templates",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"templates"
+							]
+						},
+						"description": "This uses the sample report available in the postman testing collection."
+					},
+					"response": []
+				},
+				{
+					"name": "Create an SFTP report destination",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "8ce04390-0a8e-408a-a5b7-2beb3150e714",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Set sftpDestinationId environment variable.\", function () {",
+									"    var jsonData = pm.response.json();",
+									"  ",
+									"    pm.environment.set(\"sftpDestinationId\", jsonData.header.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"destinationType\": \"SFTP\",\n  \"host\": \"<change_me>\",\n  \"port\": \"22\",\n  \"path\" : \"/upload\",\n  \"user\": \"foo\",\n  \"password\": \"pass\",\n  \"header\": {\n    \"name\": \"SFTP server\",\n    \"description\": \"our shared sftp server\",\n    \"securityProtocol\": \"ssl\",\n    \"timeout\": 100000,\n    \"downloadable\": false\n  }\n}"
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/destinations",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"destinations"
+							]
+						},
+						"description": "Note: The SFTP server is running as a container. Run the following command to determine it's host."
+					},
+					"response": []
+				},
+				{
+					"name": "Generate a report",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "8f8d4d67-7e92-49f1-b6ef-21a215640921",
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"pm.test(\"Response time is less than 500000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(500000);",
+									"});",
+									"",
+									"pm.test(\"Check correlationId returned. Set correlationId environment variable.\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('correlationId');",
+									"    pm.environment.set(\"tilkynnaSampleReportCorrelationId\", jsonData.correlationId);",
+									"});",
 									""
 								],
 								"type": "text/javascript"
@@ -200,36 +312,34 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"tilkynna\",\n  \"description\": \"Datasource for Tilkynna\",\n  \"connection\": {\n    \"driver\": \"org.postgresql.Driver\",\n    \"url\": \"{{pg_url}}\",\n    \"username\": \"postgres\",\n    \"password\": \"postgres\"\n  }\n}"
+							"raw": "{\r\n  \"callbackUrl\": \"https://myserver.com/notification/callback/here\",\r\n  \"doNotRetry\": false,\r\n  \"exportFormat\": \"PDF\",\r\n  \"reportParameters\": [\r\n    {\r\n      \"name\": \"DestinationType\",\r\n      \"value\": \"SFTP\"\r\n    }\r\n  ],\r\n  \"destinationOptions\": {\r\n    \"destinationId\": \"{{sftpDestinationId}}\",\r\n    \"destinationParameters\": [\r\n      {\r\n        \"name\": \"path\",\r\n        \"value\": \"sub_folder\"\r\n      }\r\n    ]\r\n  }\r\n}\r\n\r\n"
 						},
 						"url": {
-							"raw": "{{host}}:{{port}}/datasources",
+							"raw": "{{host}}:{{port}}/templates/{{tilkynnaSampleReportTemplateId}}/generate",
 							"host": [
 								"{{host}}"
 							],
 							"port": "{{port}}",
 							"path": [
-								"datasources"
+								"templates",
+								"{{tilkynnaSampleReportTemplateId}}",
+								"generate"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Get Datasources",
+					"name": "Check Status of Report Generation",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
+								"id": "46f96b43-2cad-4d43-a430-63ffc3812d6f",
 								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"Response time is less than 2000ms\", function () {",
-									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
-									"});"
-								]
+									""
+								],
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -241,209 +351,47 @@
 							"raw": ""
 						},
 						"url": {
-							"raw": "{{host}}:{{port}}/datasources",
+							"raw": "{{host}}:{{port}}/reports/{{tilkynnaSampleReportCorrelationId}}/status",
 							"host": [
 								"{{host}}"
 							],
 							"port": "{{port}}",
 							"path": [
-								"datasources"
+								"reports",
+								"{{tilkynnaSampleReportCorrelationId}}",
+								"status"
 							]
 						}
 					},
 					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "f8aa4735-a40a-47bc-b652-bc09390f0e7a",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
 				},
 				{
-					"name": "Get 1 Datasources",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/datasources/{{datasourceId}}",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"datasources",
-								"{{datasourceId}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Datasources empty orderBy",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"Response time is less than 1000ms\", function () {",
-									"    pm.expect(pm.response.responseTime).to.be.below(1000);",
-									"});"
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/datasources?orderBy=",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"datasources"
-							],
-							"query": [
-								{
-									"key": "orderBy",
-									"value": ""
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Datasources empty orderBy 1 full field",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"Response time is less than 1000ms\", function () {",
-									"    pm.expect(pm.response.responseTime).to.be.below(1000);",
-									"});"
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/datasources?orderBy=name,desc",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"datasources"
-							],
-							"query": [
-								{
-									"key": "orderBy",
-									"value": "name,desc"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Datasources with orderBy 2 fields",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"Response time is less than 1000ms\", function () {",
-									"    pm.expect(pm.response.responseTime).to.be.below(1000);",
-									"});"
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/datasources?orderBy=name,asc&orderBy=description,desc",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"datasources"
-							],
-							"query": [
-								{
-									"key": "orderBy",
-									"value": "name,asc"
-								},
-								{
-									"key": "orderBy",
-									"value": "description,desc"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Datasources with orderBy 1 field, 1 full",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/datasources?orderBy=name&orderBy=description",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"datasources"
-							],
-							"query": [
-								{
-									"key": "orderBy",
-									"value": "name"
-								},
-								{
-									"key": "orderBy",
-									"value": "description"
-								}
-							]
-						}
-					},
-					"response": []
-				},
+					"listen": "test",
+					"script": {
+						"id": "cd7cb3cd-e8ed-423c-a283-9348ed915ca1",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "DATASOURCES",
+			"item": [
 				{
 					"name": "List Drivers",
 					"event": [
@@ -523,9 +471,39 @@
 					"response": []
 				},
 				{
-					"name": "Validate Connection Details",
+					"name": "Create Datasource",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "09f48539-5c28-4db7-bdbc-72427fecb6db",
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"pm.test(\"Response time is less than 8000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(8000);",
+									"});",
+									"",
+									"pm.test(\"Check header.status is true.\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.header.status).to.eql(true);",
+									"});",
+									"",
+									"pm.test(\"Check header.id returned. Set datasourceId environment variable.\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('header');",
+									"    pm.environment.set(\"datasourceId2\", jsonData.header.id);",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
-						"method": "PUT",
+						"method": "POST",
 						"header": [
 							{
 								"key": "Content-Type",
@@ -534,17 +512,81 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n \n    \"driver\": \"org.postgresql.Driver\",\n    \"url\": \"jdbc:postgresql://localhost:5432/stores\",\n    \"username\": \"postgres\",\n    \"password\": \"postgres\"\n}"
+							"raw": "{\n  \"name\": \"Tilkynna2\",\n  \"description\": \"add another datasource for Tilkynna\",\n  \"connection\": {\n    \"driver\": \"org.postgresql.Driver\",\n    \"url\": \"jdbc:postgresql://<change_me>:5432/tilkynna\",\n    \"username\": \"postgres\",\n    \"password\": \"postgres\"\n  }\n}"
 						},
 						"url": {
-							"raw": "{{host}}:{{port}}/datasources/{{datasourceId}}/validate",
+							"raw": "{{host}}:{{port}}/datasources",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"datasources"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Datasources",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Response time is less than 2000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/datasources",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"datasources"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Validate Connection Details",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n \n    \"driver\": \"org.postgresql.Driver\",\n    \"url\": \"jdbc:postgresql://<change_me>:5432/tilkynna\",\n    \"username\": \"postgres\",\n    \"password\": \"postgres\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/datasources/validate",
 							"host": [
 								"{{host}}"
 							],
 							"port": "{{port}}",
 							"path": [
 								"datasources",
-								"{{datasourceId}}",
 								"validate"
 							]
 						}
@@ -579,14 +621,14 @@
 							"raw": ""
 						},
 						"url": {
-							"raw": "{{host}}:{{port}}/datasources/{{datasourceId}}/inactivate",
+							"raw": "{{host}}:{{port}}/datasources/{{datasourceId2}}/inactivate",
 							"host": [
 								"{{host}}"
 							],
 							"port": "{{port}}",
 							"path": [
 								"datasources",
-								"{{datasourceId}}",
+								"{{datasourceId2}}",
 								"inactivate"
 							]
 						}
@@ -599,7 +641,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
+								"id": "08f69864-5e9e-464f-b2c8-4febdb82de8d",
 								"exec": [
 									"pm.test(\"Status code is 200\", function () {",
 									"    pm.response.to.have.status(200);",
@@ -608,7 +650,8 @@
 									"    pm.expect(pm.response.responseTime).to.be.below(1000);",
 									"});",
 									""
-								]
+								],
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -625,27 +668,303 @@
 							"raw": ""
 						},
 						"url": {
-							"raw": "{{host}}:{{port}}/datasources/{{datasourceId}}/validate",
+							"raw": "{{host}}:{{port}}/datasources/{{datasourceId2}}/validate",
 							"host": [
 								"{{host}}"
 							],
 							"port": "{{port}}",
 							"path": [
 								"datasources",
-								"{{datasourceId}}",
+								"{{datasourceId2}}",
 								"validate"
 							]
 						}
 					},
 					"response": []
 				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "ed90dcbe-9012-4b0d-ba31-2610b62b6f71",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "fd5d932d-d0da-4e61-a209-75f268566eff",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
 			]
 		},
 		{
-			"name": "3. TEMPLATES",
+			"name": "DESTINATIONS",
 			"item": [
 				{
-					"name": "{{host}}:{{port}}/templates",
+					"name": "Get Destinations",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "6474b6f8-8079-4684-a430-63b19b7fce73",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Response time is less than 6000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(6000);",
+									"});",
+									"",
+									"pm.test(\"Set destinationId environment variable.\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set(\"destinationId0\", jsonData[0].id);",
+									"    pm.environment.set(\"destinationId1\", jsonData[1].id);",
+									"    pm.environment.set(\"destinationId2\", jsonData[2].id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/destinations",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"destinations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create SFTP destination",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "5543e8c8-ba72-4d19-a21f-5b923ba10119",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Set sftpDestinationId environment variable.\", function () {",
+									"    var jsonData = pm.response.json();",
+									"  ",
+									"    pm.environment.set(\"sftpDestinationId2\", jsonData.header.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"destinationType\": \"SFTP\",\n  \"host\": \"localhost\",\n  \"port\": \"22\",\n  \"path\" : \"/upload\",\n  \"user\": \"foo\",\n  \"password\": \"pass\",\n  \"header\": {\n    \"name\": \"The sftp server 22\",\n    \"description\": \"our shared sftp server\",\n    \"securityProtocol\": \"ssl\",\n    \"timeout\": 100000,\n    \"downloadable\": false\n  }\n}"
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/destinations",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"destinations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Validate Destination",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "653a064d-db93-4a18-a1d2-4b24907c6a8f",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Response time is less than 1000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/destinations/{{sftpDestinationId2}}/validate",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"destinations",
+								"{{sftpDestinationId2}}",
+								"validate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Inactivate Destination",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "f9bc11df-8a96-444a-af92-68ffffb727da",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Response time is less than 1000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/destinations/{{sftpDestinationId2}}/inactivate",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"destinations",
+								"{{sftpDestinationId2}}",
+								"inactivate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update sftp",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "2ddb24f5-5cc8-4e86-9bcd-c93e8207567a",
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {",
+									"  pm.response.to.have.status(204);",
+									"});",
+									"pm.test(\"Response time is less than 5000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"destinationType\": \"SFTP\",\n  \"host\": \"changed_host\",\n  \"port\": \"22\",\n  \"path\" : \"/changed_folder\",\n  \"user\": \"changed_user\",\n  \"password\": \"changed_password\",\n  \"header\": {\n    \"name\": \"changed_name\",\n    \"description\": \"changed_description\",\n    \"securityProtocol\": \"ssl\",\n    \"timeout\": 100000,\n    \"downloadable\": false\n  }\n}"
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/destinations/{{sftpDestinationId2}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"destinations",
+								"{{sftpDestinationId2}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "451bc4f3-66e1-439b-8dcb-1a90f1bffec5",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "1d6f66bd-5bd2-4265-b5b8-9e52a21aff36",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "TEMPLATES",
+			"item": [
+				{
+					"name": "List Templates",
 					"event": [
 						{
 							"listen": "test",
@@ -683,81 +1002,12 @@
 					"response": []
 				},
 				{
-					"name": "Create Template (with Params)",
+					"name": "Get Template Details",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
-								"id": "192c53cd-91fb-4e0e-8718-70671585dc7b",
-								"exec": [
-									"pm.test(\"Response is CREATED\", function () {",
-									"    pm.response.to.have.status(201);",
-									"});",
-									"",
-									"pm.test(\"Check template ID returned. Set template ID environment variable.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData).to.have.property('templateId');",
-									"    pm.environment.set(\"paramsTemplateId\", jsonData.templateId);",
-									"});",
-									"",
-									"pm.test(\"Check correct name was returned.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.name).to.eql(\"Top N %\");",
-									"});",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "file",
-									"type": "file",
-									"src": ""
-								},
-								{
-									"key": "templateName",
-									"value": "Top N %",
-									"type": "text"
-								},
-								{
-									"key": "tags",
-									"value": "tag1, tag2, tag3",
-									"type": "text"
-								},
-								{
-									"key": "datasourceIds",
-									"value": "{{datasourceId}}",
-									"type": "text"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/templates",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"templates"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "GetTemplateDetails-TemplateHasParams",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
+								"id": "1e7b03de-8427-4017-9353-7a847c72bc16",
 								"exec": [
 									"pm.test(\"Status code is 200\", function () {",
 									"  pm.response.to.have.status(200);",
@@ -765,124 +1015,12 @@
 									"pm.test(\"Response time is less than 9000ms\", function () {",
 									"    pm.expect(pm.response.responseTime).to.be.below(9000);",
 									"});"
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/templates/{{paramsTemplateId}}",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"templates",
-								"{{paramsTemplateId}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Create Template (with no Params)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "c85fc227-17ab-4dc7-a945-0ddc050e506d",
-								"exec": [
-									"pm.test(\"Response is CREATED\", function () {",
-									"    pm.response.to.have.status(201);",
-									"});",
-									"",
-									"pm.test(\"Check template ID returned. Set template ID environment variable.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData).to.have.property('templateId');",
-									"    pm.environment.set(\"noParamsTemplateId\", jsonData.templateId);",
-									"});",
-									"",
-									"pm.test(\"Check correct name was returned.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.name).to.eql(\"Top Selling Products\");",
-									"});",
-									""
 								],
 								"type": "text/javascript"
 							}
 						}
 					],
 					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "file",
-									"type": "file",
-									"src": ""
-								},
-								{
-									"key": "templateName",
-									"value": "Template with no params",
-									"type": "text"
-								},
-								{
-									"key": "tags",
-									"value": "tag1, tag2, tag3",
-									"type": "text"
-								},
-								{
-									"key": "datasourceIds",
-									"value": "{{datasourceId}}",
-									"type": "text"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/templates",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"templates"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "GetTemplateDetails-NoParams",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"Response time is less than 5000ms\", function () {",
-									"    pm.expect(pm.response.responseTime).to.be.below(5000);",
-									"});"
-								]
-							}
-						}
-					],
-					"request": {
 						"method": "GET",
 						"header": [
 							{
@@ -895,74 +1033,26 @@
 							"raw": ""
 						},
 						"url": {
-							"raw": "{{host}}:{{port}}/templates/{{noParamsTemplateId}}",
+							"raw": "{{host}}:{{port}}/templates/{{tilkynnaSampleReportTemplateId}}",
 							"host": [
 								"{{host}}"
 							],
 							"port": "{{port}}",
 							"path": [
 								"templates",
-								"{{noParamsTemplateId}}"
+								"{{tilkynnaSampleReportTemplateId}}"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "ListTemplates",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"  pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"Response time is less than 1000ms\", function () {",
-									"    pm.expect(pm.response.responseTime).to.be.below(1000);",
-									"});"
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/templates",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"templates"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "3a. TEMPLATE TAGS",
-			"item": [
-				{
 					"name": "Create Template (with tags)",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
+								"id": "0f293d21-22ed-4b37-b0e5-ba232d339f41",
 								"exec": [
 									"pm.test(\"Response is CREATED\", function () {",
 									"    pm.response.to.have.status(201);",
@@ -981,7 +1071,8 @@
 									"    pm.expect(jsonData.tags[1].tag).to.eql(\"tag-test2\");",
 									"    pm.expect(jsonData.tags[2].tag).to.eql(\"tag-test3\");",
 									"});"
-								]
+								],
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -1008,7 +1099,7 @@
 								},
 								{
 									"key": "datasourceIds",
-									"value": "{{datasourceId}}",
+									"value": "{{datasourceId2}}",
 									"type": "text"
 								}
 							]
@@ -1228,248 +1319,40 @@
 					},
 					"response": []
 				}
-			]
-		},
-		{
-			"name": "4. DESTINATIONS stream",
-			"item": [
+			],
+			"event": [
 				{
-					"name": "Get Destinations",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"  pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"Response time is less than 6000ms\", function () {",
-									"    pm.expect(pm.response.responseTime).to.be.below(6000);",
-									"});",
-									"",
-									"pm.test(\"Set destinationId environment variable.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData[0]).to.have.property('id');",
-									"    pm.expect(jsonData[0]).to.have.property('status');",
-									"    pm.expect(jsonData[0].status).to.eql(\"active\");",
-									"  ",
-									"    pm.environment.set(\"destinationId\", jsonData[0].id);",
-									"});"
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/destinations",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"destinations"
-							]
-						}
-					},
-					"response": []
+					"listen": "prerequest",
+					"script": {
+						"id": "ba11aef0-6c50-43a3-bfc1-1cfe45e8514b",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
 				},
 				{
-					"name": "Validate Destination",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"Response time is less than 1000ms\", function () {",
-									"    pm.expect(pm.response.responseTime).to.be.below(1000);",
-									"});",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/destinations/{{destinationId}}/validate",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"destinations",
-								"{{destinationId}}",
-								"validate"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Inactivate Destination",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"Response time is less than 1000ms\", function () {",
-									"    pm.expect(pm.response.responseTime).to.be.below(1000);",
-									"});",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/destinations/{{destinationId}}/inactivate",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"destinations",
-								"{{destinationId}}",
-								"inactivate"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Check Destination Now Inactive",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"  pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"Response time is less than 6000ms\", function () {",
-									"    pm.expect(pm.response.responseTime).to.be.below(6000);",
-									"});",
-									"",
-									"pm.test(\"Set destinationId environment variable.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData[0]).to.have.property('id');",
-									"    pm.expect(jsonData[0]).to.have.property('status');",
-									"    pm.expect(jsonData[0].status).to.eql(\"inactive\");",
-									"});"
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/destinations",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"destinations"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Activate Destination Again for Further Tests",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"Response time is less than 1000ms\", function () {",
-									"    pm.expect(pm.response.responseTime).to.be.below(1000);",
-									"});",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/destinations/{{destinationId}}/validate",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"destinations",
-								"{{destinationId}}",
-								"validate"
-							]
-						}
-					},
-					"response": []
+					"listen": "test",
+					"script": {
+						"id": "a52274dd-669c-4706-9e9a-7d95bc4f182b",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
 				}
 			]
 		},
 		{
-			"name": "5. GENERATE_REPORT",
+			"name": "GENERATE_REPORT",
 			"item": [
 				{
-					"name": "Get STREAM Destination",
+					"name": "Get Destinations ",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
+								"id": "6474b6f8-8079-4684-a430-63b19b7fce73",
 								"exec": [
 									"pm.test(\"Status code is 200\", function () {",
 									"  pm.response.to.have.status(200);",
@@ -1477,13 +1360,9 @@
 									"pm.test(\"Response time is less than 6000ms\", function () {",
 									"    pm.expect(pm.response.responseTime).to.be.below(6000);",
 									"});",
-									"",
-									"pm.test(\"Set destinationId environment variable.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData[0]).to.have.property('id');",
-									"    pm.environment.set(\"destinationId\", jsonData[0].id);",
-									"});"
-								]
+									""
+								],
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -1513,7 +1392,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
+								"id": "ba84076b-c8c9-42ea-8077-49b1bd624c5b",
 								"exec": [
 									"pm.test(\"Status code is 201\", function () {",
 									"    pm.response.to.have.status(201);",
@@ -1527,7 +1406,8 @@
 									"    pm.expect(jsonData).to.have.property('correlationId');",
 									"    pm.environment.set(\"correlationId\", jsonData.correlationId);",
 									"});"
-								]
+								],
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -1541,17 +1421,17 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"callbackUrl\": \"https://myserver.com/notification/callback/here\",\r\n  \"doNotRetry\": false,\r\n  \"exportFormat\": \"PDF\",\r\n  \"reportParameters\": [\r\n    {\r\n      \"name\": \"string\",\r\n      \"value\": \"string\"\r\n    }\r\n  ],\r\n  \"destinationOptions\": {\r\n    \"destinationId\": \"{{destinationId}}\"\r\n  }\r\n}\r\n\r\n"
+							"raw": "{\r\n  \"callbackUrl\": \"https://myserver.com/notification/callback/here\",\r\n  \"doNotRetry\": false,\r\n  \"exportFormat\": \"PDF\",\r\n  \"reportParameters\": [\r\n    {\r\n      \"name\": \"DestinationType\",\r\n      \"value\": \"STREAM\"\r\n    }\r\n  ],\r\n  \"destinationOptions\": {\r\n    \"destinationId\": \"2f4fe19f-0bfa-47ee-bf70-cea39874ee12\"\r\n  }\r\n}\r\n\r\n"
 						},
 						"url": {
-							"raw": "{{host}}:{{port}}/templates/{{noParamsTemplateId}}/generate",
+							"raw": "{{host}}:{{port}}/templates/{{tilkynnaSampleReportTemplateId}}/generate",
 							"host": [
 								"{{host}}"
 							],
 							"port": "{{port}}",
 							"path": [
 								"templates",
-								"{{noParamsTemplateId}}",
+								"{{tilkynnaSampleReportTemplateId}}",
 								"generate"
 							]
 						}
@@ -1606,1007 +1486,12 @@
 					"response": []
 				},
 				{
-					"name": "GenerateReport validate DestinationParams",
+					"name": "GenerateReport_ToStream_HTML",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"Status code is 400\", function () {",
-									"    pm.response.to.have.status(400);",
-									"});",
-									"pm.test(\"Response time is less than 500000ms\", function () {",
-									"    pm.expect(pm.response.responseTime).to.be.below(500000);",
-									"});",
-									"",
-									"pm.test(\"Check message returned.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData).to.have.property('message');",
-									"});"
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n  \"callbackUrl\": \"https://myserver.com/notification/callback/here\",\r\n  \"doNotRetry\": false,\r\n  \"exportFormat\": \"PDF\",\r\n  \"reportParameters\": [\r\n    {\r\n      \"name\": \"string\",\r\n      \"value\": \"string\"\r\n    }\r\n  ],\r\n  \"destinationOptions\": {\r\n    \"destinationId\": \"{{destinationId}}\",\r\n    \"destinationParameters\": [\r\n      {\r\n        \"name\": \"not_a_valid_destination_parameter\",\r\n        \"value\": \"string\"\r\n      }\r\n    ]\r\n  }\r\n}\r\n\r\n"
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/templates/{{noParamsTemplateId}}/generate",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"templates",
-								"{{noParamsTemplateId}}",
-								"generate"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "4. DESTINATIONS sftp",
-			"item": [
-				{
-					"name": "Create SFTP destination",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Set sftpDestinationId environment variable.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"  ",
-									"    pm.environment.set(\"sftpDestinationId\", jsonData.header.id);",
-									"});"
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"destinationType\": \"SFTP\",\n  \"host\": \"localhost\",\n  \"port\": \"22\",\n  \"path\" : \"/upload\",\n  \"user\": \"foo\",\n  \"password\": \"pass\",\n  \"header\": {\n    \"name\": \"The sftp server 22\",\n    \"description\": \"our shared sftp server\",\n    \"securityProtocol\": \"ssl\",\n    \"timeout\": 100000,\n    \"downloadable\": false\n  }\n}"
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/destinations",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"destinations"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get SFTP Destination",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"  pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"Response time is less than 2000ms\", function () {",
-									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
-									"});",
-									"",
-									"",
-									"pm.test(\"Check fields id and status.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData[1]).to.have.property('id');",
-									"    pm.expect(jsonData[1]).to.have.property('status');",
-									"});",
-									"",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/destinations",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"destinations"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Validate Destination",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"Response time is less than 1000ms\", function () {",
-									"    pm.expect(pm.response.responseTime).to.be.below(1000);",
-									"});",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/destinations/{{sftpDestinationId}}/validate",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"destinations",
-								"{{sftpDestinationId}}",
-								"validate"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Inactivate Destination",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"Response time is less than 1000ms\", function () {",
-									"    pm.expect(pm.response.responseTime).to.be.below(1000);",
-									"});",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/destinations/{{sftpDestinationId}}/inactivate",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"destinations",
-								"{{sftpDestinationId}}",
-								"inactivate"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Check Destination Now Inactive",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"  pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"Response time is less than 6000ms\", function () {",
-									"    pm.expect(pm.response.responseTime).to.be.below(6000);",
-									"});",
-									"",
-									"pm.test(\"Set destinationId environment variable.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData[1]).to.have.property('id');",
-									"    pm.expect(jsonData[1]).to.have.property('status');",
-									"});"
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/destinations",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"destinations"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "update sftp",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "2ddb24f5-5cc8-4e86-9bcd-c93e8207567a",
-								"exec": [
-									"pm.test(\"Status code is 204\", function () {",
-									"  pm.response.to.have.status(204);",
-									"});",
-									"pm.test(\"Response time is less than 5000ms\", function () {",
-									"    pm.expect(pm.response.responseTime).to.be.below(5000);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"destinationType\": \"SFTP\",\n  \"host\": \"changed_host\",\n  \"port\": \"22\",\n  \"path\" : \"/changed_folder\",\n  \"user\": \"changed_user\",\n  \"password\": \"changed_password\",\n  \"header\": {\n    \"name\": \"changed_name\",\n    \"description\": \"changed_description\",\n    \"securityProtocol\": \"ssl\",\n    \"timeout\": 100000,\n    \"downloadable\": false\n  }\n}"
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/destinations/{{sftpDestinationId}}",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"destinations",
-								"{{sftpDestinationId}}"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "4. DESTINATIONS smtp",
-			"item": [
-				{
-					"name": "Create SMTP destination",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"Set smtpDestinationId environment variable.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.environment.set(\"smtpDestinationId\", jsonData.header.id);",
-									"});"
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"destinationType\": \"SMTP\",\n  \"host\": \"localhost\",\n  \"port\": \"22\",\n  \"user\": \"foo\",\n  \"password\": \"pass\",\n  \"fromAddress\": \"fromAddress@here.com\",\n  \"header\": {\n    \"name\": \"SMTP 1\",\n    \"description\": \"our shared smptp server\",\n    \"securityProtocol\": \"ssl\",\n    \"timeout\": 100000,\n    \"downloadable\": false\n  }\n}"
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/destinations",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"destinations"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get SMTP Destinations",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"  pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"Response time is less than 6000ms\", function () {",
-									"    pm.expect(pm.response.responseTime).to.be.below(6000);",
-									"});",
-									"",
-									"pm.test(\"Set destinationId environment variable.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData[2]).to.have.property('id');",
-									"    pm.expect(jsonData[2]).to.have.property('status');",
-									"});"
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/destinations",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"destinations"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Validate SMTP Destination",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"Response time is less than 1000ms\", function () {",
-									"    pm.expect(pm.response.responseTime).to.be.below(1000);",
-									"});"
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/destinations/{{smtpDestinationId}}/validate",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"destinations",
-								"{{smtpDestinationId}}",
-								"validate"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Inactivate SMTP Destination",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"Response time is less than 1000ms\", function () {",
-									"    pm.expect(pm.response.responseTime).to.be.below(1000);",
-									"});",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/destinations/{{smtpDestinationId}}/inactivate",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"destinations",
-								"{{smtpDestinationId}}",
-								"inactivate"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Check Destination Now Inactive",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"  pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"Response time is less than 6000ms\", function () {",
-									"    pm.expect(pm.response.responseTime).to.be.below(6000);",
-									"});",
-									"",
-									"pm.test(\"Check environment variable.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData[2]).to.have.property('id');",
-									"    pm.expect(jsonData[2]).to.have.property('status');",
-									"});"
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/destinations",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"destinations"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "update smtp",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "a0d2acef-2cbe-4117-a68b-8351f05a96d4",
-								"exec": [
-									"pm.test(\"Status code is 204\", function () {",
-									"  pm.response.to.have.status(204);",
-									"});",
-									"pm.test(\"Response time is less than 5000ms\", function () {",
-									"    pm.expect(pm.response.responseTime).to.be.below(5000);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"destinationType\": \"SMTP\",\n  \"host\": \"SMPT_changed_ho3s2t\",\n  \"port\": \"22\",\n  \"user\": \"SMPT_changed_us2e13r\",\n  \"password\": \"SMPT_changed_pas3s2word1\",\n  \"fromAddress\": \"SMPT_fromAddress@here.com\",\n  \"header\": {\n    \"name\": \"SMPT_changed3_n12ame\",\n    \"description\": \"SMPT_changed_desc3r21iption\",\n    \"securityProtocol\": \"ssl\",\n    \"timeout\": 100000,\n    \"downloadable\": false\n  }\n}"
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/destinations/{{smtpDestinationId}}",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"destinations",
-								"{{smtpDestinationId}}"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "4. DESTINATIONS get",
-			"item": [
-				{
-					"name": "Get Destinations",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"  pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"Response time is less than 6000ms\", function () {",
-									"    pm.expect(pm.response.responseTime).to.be.below(6000);",
-									"});",
-									"",
-									"pm.test(\"Set destinationId environment variable.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.environment.set(\"destinationId0\", jsonData[0].id);",
-									"    pm.environment.set(\"destinationId1\", jsonData[1].id);",
-									"    pm.environment.set(\"destinationId2\", jsonData[2].id);",
-									"});"
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/destinations",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"destinations"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get STREAM Destination",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"  pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"Response time is less than 2000ms\", function () {",
-									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
-									"});",
-									"",
-									"pm.test(\"Check destination fields Exist.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData).to.have.property('destinationType');",
-									"    pm.expect(jsonData).to.have.property('header');",
-									"    pm.expect(jsonData.header).to.have.property('id');",
-									"    pm.expect(jsonData.header).to.have.property('name');",
-									"    pm.expect(jsonData.header).to.have.property('description');",
-									"    pm.expect(jsonData.header).to.have.property('status');",
-									"    pm.expect(jsonData.header).to.have.property('downloadable');",
-									"});",
-									"",
-									"pm.test(\"Check destination id value = destinationId0.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.header.id).to.eql(pm.environment.get('destinationId0'));",
-									"});"
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/destinations/{{destinationId0}}",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"destinations",
-								"{{destinationId0}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get SFTP Destination",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"  pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"Response time is less than 2000ms\", function () {",
-									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
-									"});",
-									"",
-									"pm.test(\"Check sftp destination fields Exist.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData).to.have.property('destinationType');",
-									"    pm.expect(jsonData).to.have.property('header');",
-									"    pm.expect(jsonData.header).to.have.property('id');",
-									"    pm.expect(jsonData.header).to.have.property('name');",
-									"    pm.expect(jsonData.header).to.have.property('description');",
-									"    pm.expect(jsonData.header).to.have.property('status');",
-									"    pm.expect(jsonData.header).to.have.property('downloadable');",
-									"});",
-									"",
-									"pm.test(\"Check destination id value = destinationId1.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.header.id).to.eql(pm.environment.get('destinationId1'));",
-									"});"
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/destinations/{{destinationId1}}",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"destinations",
-								"{{destinationId1}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get SMTP Destination",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"  pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"Response time is less than 2000ms\", function () {",
-									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
-									"});",
-									"",
-									"pm.test(\"Check destination fields Exist.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData).to.have.property('destinationType');",
-									"    pm.expect(jsonData).to.have.property('header');",
-									"    pm.expect(jsonData.header).to.have.property('id');",
-									"    pm.expect(jsonData.header).to.have.property('name');",
-									"    pm.expect(jsonData.header).to.have.property('description');",
-									"    pm.expect(jsonData.header).to.have.property('status');",
-									"    pm.expect(jsonData.header).to.have.property('downloadable');",
-									"});",
-									"",
-									"pm.test(\"Check destination id value = destinationId2.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.header.id).to.eql(pm.environment.get('destinationId2'));",
-									"});"
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/destinations/{{destinationId2}}",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"destinations",
-								"{{destinationId2}}"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "5. SFTP Destination Integration Tests",
-			"item": [
-				{
-					"name": "Create Datasource 2 TilkynnaDB",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "09f48539-5c28-4db7-bdbc-72427fecb6db",
-								"exec": [
-									"pm.test(\"Status code is 201\", function () {",
-									"    pm.response.to.have.status(201);",
-									"});",
-									"pm.test(\"Response time is less than 8000ms\", function () {",
-									"    pm.expect(pm.response.responseTime).to.be.below(8000);",
-									"});",
-									"",
-									"pm.test(\"Check header.status is true.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.header.status).to.eql(true);",
-									"});",
-									"",
-									"pm.test(\"Check header.id returned. Set tilkynnaDatasourceId environment variable.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData).to.have.property('header');",
-									"    pm.environment.set(\"tilkynnaDatasourceId\", jsonData.header.id);",
-									"});",
-									"",
-									"pm.test(\"log JSON response.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    console.log(\"log JSON response.:\", jsonData);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": \"tilkynna db\",\n  \"description\": \"tilkynna db on k8s deployment\",\n  \"connection\": {\n    \"driver\": \"org.postgresql.Driver\",\n    \"url\": \"{{pg_url}}\",\n    \"username\": \"postgres\",\n    \"password\": \"postgres\"\n  }\n}"
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/datasources",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"datasources"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Create Template 4 Tilkynna",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "4c046214-9a60-4028-9448-96724acba480",
-								"exec": [
-									"pm.test(\"Response is CREATED\", function () {",
-									"    pm.response.to.have.status(201);",
-									"});",
-									"",
-									"pm.test(\"Check template ID returned. Set template ID environment variable.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData).to.have.property('templateId');",
-									"    pm.environment.set(\"tilkynnaSampleReportTemplateId\", jsonData.templateId);",
-									"});",
-									"",
-									"pm.test(\"log JSON response.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    console.log(\"log JSON response.:\", jsonData);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "file",
-									"type": "file",
-									"src": ""
-								},
-								{
-									"key": "templateName",
-									"value": "Tilkynna Sample Report",
-									"type": "text"
-								},
-								{
-									"key": "tags",
-									"value": "tilkynnaDatasources",
-									"type": "text"
-								},
-								{
-									"key": "datasourceIds",
-									"value": "{{tilkynnaDatasourceId}}",
-									"type": "text"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/templates",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"templates"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Create destination to external SFTP",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "8ce04390-0a8e-408a-a5b7-2beb3150e714",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Set externalSftpDestinationId environment variable.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"  ",
-									"    pm.environment.set(\"externalSftpDestinationId\", jsonData.header.id);",
-									"});",
-									"",
-									"pm.test(\"log JSON response.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    console.log(\"log JSON response.:\", jsonData);",
-									"});",
-									"",
-									"pm.test(\"Check externalSftpDestinationId is active.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.header.status).to.eql(\"active\");",
-									"});",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"destinationType\": \"SFTP\",\n  \"host\": \"localhost\",\n  \"port\": \"22\",\n  \"path\" : \"/upload\",\n  \"user\": \"foo\",\n  \"password\": \"pass\",\n  \"header\": {\n    \"name\": \"SFTP server\",\n    \"description\": \"our shared sftp server\",\n    \"securityProtocol\": \"ssl\",\n    \"timeout\": 100000,\n    \"downloadable\": false\n  }\n}"
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/destinations",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"destinations"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "GenerateReport 2 external SFTP",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "8f8d4d67-7e92-49f1-b6ef-21a215640921",
+								"id": "ba84076b-c8c9-42ea-8077-49b1bd624c5b",
 								"exec": [
 									"pm.test(\"Status code is 201\", function () {",
 									"    pm.response.to.have.status(201);",
@@ -2618,12 +1503,7 @@
 									"pm.test(\"Check correlationId returned. Set correlationId environment variable.\", function () {",
 									"    var jsonData = pm.response.json();",
 									"    pm.expect(jsonData).to.have.property('correlationId');",
-									"    pm.environment.set(\"tilkynnaSampleReportCorrelationId\", jsonData.correlationId);",
-									"});",
-									"",
-									"pm.test(\"log JSON response.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    console.log(\"log JSON response.:\", jsonData);",
+									"    pm.environment.set(\"correlationId\", jsonData.correlationId);",
 									"});"
 								],
 								"type": "text/javascript"
@@ -2640,7 +1520,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"callbackUrl\": \"https://myserver.com/notification/callback/here\",\r\n  \"doNotRetry\": false,\r\n  \"exportFormat\": \"PDF\",\r\n  \"reportParameters\": [\r\n    {\r\n      \"name\": \"DestinationType\",\r\n      \"value\": \"STREAM\"\r\n    }\r\n  ],\r\n  \"destinationOptions\": {\r\n    \"destinationId\": \"{{externalSftpDestinationId}}\",\r\n    \"destinationParameters\": [\r\n      {\r\n        \"name\": \"path\",\r\n        \"value\": \"sub_folder\"\r\n      }\r\n    ]\r\n  }\r\n}\r\n\r\n"
+							"raw": "{\r\n  \"callbackUrl\": \"https://myserver.com/notification/callback/here\",\r\n  \"doNotRetry\": false,\r\n  \"exportFormat\": \"HTML\",\r\n  \"reportParameters\": [\r\n    {\r\n      \"name\": \"DestinationType\",\r\n      \"value\": \"STREAM\"\r\n    }\r\n  ],\r\n  \"destinationOptions\": {\r\n    \"destinationId\": \"2f4fe19f-0bfa-47ee-bf70-cea39874ee12\"\r\n  }\r\n}\r\n\r\n"
 						},
 						"url": {
 							"raw": "{{host}}:{{port}}/templates/{{tilkynnaSampleReportTemplateId}}/generate",
@@ -2658,70 +1538,24 @@
 					"response": []
 				},
 				{
-					"name": "Report Status tilkynnaSampleReportCorrelationId 1",
+					"name": "GenerateReport_ToStream_XLSX",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
-								"id": "46f96b43-2cad-4d43-a430-63ffc3812d6f",
+								"id": "ba84076b-c8c9-42ea-8077-49b1bd624c5b",
 								"exec": [
-									"pm.test(\"Check report status tilkynnaSampleReportCorrelationId 1.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    console.log(\"tilkynnaSampleReportCorrelationId status:\", jsonData);",
-									"    ",
-									"    console.log(pm.response.json());",
-									"    ",
-									"    setTimeout(function() {",
-									"          console.log(\"Sleeping for 60 seconds before next request.\");",
-									"          console.log(pm.response.json());",
-									"    }, 60000);",
-									"    ",
-									"    ",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/reports/{{tilkynnaSampleReportCorrelationId}}/status",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"reports",
-								"{{tilkynnaSampleReportCorrelationId}}",
-								"status"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Report Status tilkynnaSampleReportCorrelationId 2",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "46f96b43-2cad-4d43-a430-63ffc3812d6f",
-								"exec": [
-									"pm.test(\"Check report status tilkynnaSampleReportCorrelationId 1.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    console.log(\"tilkynnaSampleReportCorrelationId status:\", jsonData);",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"pm.test(\"Response time is less than 500000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(500000);",
 									"});",
 									"",
-									"",
-									"pm.test(\"Check reportstatus is finished.\", function () {",
+									"pm.test(\"Check correlationId returned. Set correlationId environment variable.\", function () {",
 									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.status).to.eql(\"finished\");",
+									"    pm.expect(jsonData).to.have.property('correlationId');",
+									"    pm.environment.set(\"correlationId\", jsonData.correlationId);",
 									"});"
 								],
 								"type": "text/javascript"
@@ -2729,49 +1563,53 @@
 						}
 					],
 					"request": {
-						"method": "GET",
-						"header": [],
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": ""
+							"raw": "{\r\n  \"callbackUrl\": \"https://myserver.com/notification/callback/here\",\r\n  \"doNotRetry\": false,\r\n  \"exportFormat\": \"XLSL\",\r\n  \"reportParameters\": [\r\n    {\r\n      \"name\": \"DestinationType\",\r\n      \"value\": \"STREAM\"\r\n    }\r\n  ],\r\n  \"destinationOptions\": {\r\n    \"destinationId\": \"2f4fe19f-0bfa-47ee-bf70-cea39874ee12\"\r\n  }\r\n}\r\n\r\n"
 						},
 						"url": {
-							"raw": "{{host}}:{{port}}/reports/{{tilkynnaSampleReportCorrelationId}}/status",
+							"raw": "{{host}}:{{port}}/templates/{{tilkynnaSampleReportTemplateId}}/generate",
 							"host": [
 								"{{host}}"
 							],
 							"port": "{{port}}",
 							"path": [
-								"reports",
-								"{{tilkynnaSampleReportCorrelationId}}",
-								"status"
+								"templates",
+								"{{tilkynnaSampleReportTemplateId}}",
+								"generate"
 							]
 						}
 					},
 					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "f097f824-33e7-436a-8bb4-2e9699e0ab85",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
 				},
 				{
-					"name": "DownloadReport tilkynnaSampleReportCorrelationId",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{host}}:{{port}}/reports/{{tilkynnaSampleReportCorrelationId}}",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"reports",
-								"{{tilkynnaSampleReportCorrelationId}}"
-							]
-						}
-					},
-					"response": []
+					"listen": "test",
+					"script": {
+						"id": "d6027498-2cba-47b0-95c4-5d6c60959218",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
 				}
 			]
 		}
