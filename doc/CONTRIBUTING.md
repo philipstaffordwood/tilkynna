@@ -131,7 +131,7 @@ NOTE: you will need to include the `libs-no-repo` folder into the classpath of y
 
 ## Running a Built Tilkynna Instance:
 #### NOTE: You will need a Postgres instance with DB named tilkynna to connect to 
-There are multiple ways to setup a Postgres instance: docker, helm etc. or you could already have one somewhere. 
+There are multiple ways to setup a Postgres instance: docker or you could already have one somewhere. 
 
 ### **To setup a posgtres instance via docker use command** (from Tilkynna root directory)
 
