@@ -36,4 +36,4 @@ COPY --from=BUILD /build/drivers/ drivers
 COPY --from=BUILD  /build/libs-no-repo/ libs-no-repo
 
 # To reduce Tomcat startup time we added a system property pointing to "/dev/urandom" as a source of entropy.
-ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom", "-Dloader.path=drivers,libs-no-repo", "-Duser.timezone=UTC", "-jar","/app.jar"]
+ENTRYPOINT exec java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -Dloader.path=drivers,libs-no-repo -Duser.timezone=UTC -jar /app.jar
