@@ -11,12 +11,15 @@ services:
     image:  grindrodbank/tilkynna:latest
     ports:
      - "9981:9981"
+    # JMX port you will also need to include the JAVA_OPTS environment variable 
+    # - "6002:6002"
     # Persist the data between container invocations  (you will need to persist the postgres data at the same time if you want to do this) 
 #    volumes:      
 #      - ./reports:/tmp/reports
 #      - ./templates:/tmp/templates
     environment:
       SPRING_DATASOURCE_URL: "jdbc:postgresql://postgresql:5432/tilkynna?user=postgres&password=postgres"
+      #JAVA_OPTS: "-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=6002 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false"
     depends_on: 
       - postgresql
       - keycloak
