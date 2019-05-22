@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.2-alpha1" last-position="0,414" last-zoom="1" max-obj-count="20"
+<dbmodel pgmodeler-ver="0.9.2-alpha1" last-position="0,239" last-zoom="1" max-obj-count="20"
 	 default-owner="postgres">
 <database name="tilkynna" encoding="UTF8" is-template="false" allow-conns="true">
 	<role name="postgres"/>
@@ -86,7 +86,7 @@ FINISHED_REMOTE: processing for generating the report to any destination other t
 	<enumeration values="PENDING,STARTED,FAILED,FINISHED"/>
 </usertype>
 
-<table name="destination" layer="0" collapse-mode="2" max-obj-count="9">
+<table name="destination" layer="0" collapse-mode="2" max-obj-count="12">
 	<schema name="_reports"/>
 	<role name="postgres"/>
 	<position x="600" y="560"/>
@@ -113,6 +113,14 @@ FINISHED_REMOTE: processing for generating the report to any destination other t
 	</column>
 	<column name="downloadable" not-null="true">
 		<type name="boolean" length="0"/>
+	</column>
+	<column name="__updated_on" not-null="true">
+		<type name="timestamptz" length="0"/>
+		<comment><![CDATA[timestamptz when destination was last updated (changed) ]]></comment>
+	</column>
+	<column name="__updated_by" not-null="true">
+		<type name="uuid" length="0"/>
+		<comment><![CDATA[UUID of the user that last updated this destination at the __updated_on time. ]]></comment>
 	</column>
 	<constraint name="pk_destination" type="pk-constr" table="_reports.destination">
 		<columns names="destination_id" ref-type="src-columns"/>
