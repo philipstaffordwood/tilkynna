@@ -29,16 +29,19 @@ public class SftpDestinationProvider implements DestinationProvider {
     @Autowired
     private DestinationEntityRepository destinationRepository;
 
+    @Autowired
+    private DynamicFtpChannelResolver dynamicFtpChannelResolver;
+
     private SFTPConfigSettings extractSftpConfig(GeneratedReportEntity reportRequest, SFTPDestinationEntity sftp) {
         SFTPConfigSettings sftpConfig = new SFTPConfigSettings();
+        sftpConfig.setDestinationId(sftp.getDestinationId());
         sftpConfig.setHost(sftp.getHost());
         sftpConfig.setPort(sftp.getPort());
         sftpConfig.setUsername(sftp.getUsername());
         sftpConfig.setPassword(sftp.getPassword());
 
-        reportRequest.getSelectedDestinationParameters().forEach(sdp -> { //
-            sftpConfig.setWorkingDirectory(sftp.getWorkingDirectory() + "/" + sdp.getValue());
-        });
+        reportRequest.getSelectedDestinationParameters().forEach( //
+                sdp -> sftpConfig.setWorkingDirectory(sftp.getWorkingDirectory() + "/" + sdp.getValue()));
 
         return sftpConfig;
     }
@@ -52,7 +55,6 @@ public class SftpDestinationProvider implements DestinationProvider {
         SFTPDestinationEntity sftp = (SFTPDestinationEntity) destinationEntity.get();
         SFTPConfigSettings sftpConfig = extractSftpConfig(reportRequest, sftp);
 
-        DynamicFtpChannelResolver dynamicFtpChannelResolver = new DynamicFtpChannelResolver();
         MessageChannel channel = dynamicFtpChannelResolver.resolve(sftpConfig);
 
         Message<byte[]> message = //
@@ -74,7 +76,6 @@ public class SftpDestinationProvider implements DestinationProvider {
         sftpConfig.setUsername(destination2Test.getUsername());
         sftpConfig.setPassword(destination2Test.getPassword());
 
-        DynamicFtpChannelResolver dynamicFtpChannelResolver = new DynamicFtpChannelResolver();
         return dynamicFtpChannelResolver.test(sftpConfig);
     }
 }

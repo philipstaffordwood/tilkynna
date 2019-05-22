@@ -6,6 +6,8 @@
  */
 package org.tilkynna.report.destination.integration;
 
+import java.util.UUID;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,6 +15,7 @@ import lombok.Setter;
 @Getter
 public class SFTPConfigSettings {
 
+    private UUID destinationId;
     private String host;
     private Short port;
     private String username;
