@@ -6,6 +6,7 @@
  */
 package org.tilkynna.report.destination.model.db;
 
+import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
@@ -24,6 +25,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.Type;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -70,6 +72,13 @@ public class DestinationEntity {
     @Column(name = "downloadable")
     private boolean downloadable;
 
+    @Column(name = "__updated_on")
+    @UpdateTimestamp
+    private ZonedDateTime updatedOn;
+
+    @Column(name = "__updated_by")
+    private UUID updatedBy;
+
     @OneToMany(mappedBy = "destination", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<DestinationParameterEntity> destinationParameters = new HashSet<>();
 
@@ -105,7 +114,7 @@ public class DestinationEntity {
 
     @Override
     public int hashCode() {
-        return Objects.hash(description, destinationParameters, downloadable, isActive, name, securityProtocol, timeout, type);
+        return Objects.hash(description, destinationParameters, downloadable, isActive, name, securityProtocol, timeout, type, updatedBy, updatedOn);
     }
 
     @Override
@@ -114,7 +123,7 @@ public class DestinationEntity {
         if (obj == null) { return false; }
         if (!(obj instanceof DestinationEntity)) { return false; }
         DestinationEntity other = (DestinationEntity) obj;
-        return Objects.equals(description, other.description) && Objects.equals(destinationParameters, other.destinationParameters) && downloadable == other.downloadable && isActive == other.isActive && Objects.equals(name, other.name) && Objects.equals(securityProtocol, other.securityProtocol) && Objects.equals(timeout, other.timeout) && Objects.equals(type, other.type);
+        return Objects.equals(description, other.description) && Objects.equals(destinationParameters, other.destinationParameters) && downloadable == other.downloadable && isActive == other.isActive && Objects.equals(name, other.name) && Objects.equals(securityProtocol, other.securityProtocol) && Objects.equals(timeout, other.timeout) && Objects.equals(type, other.type) && Objects.equals(updatedBy, other.updatedBy) && Objects.equals(updatedOn, other.updatedOn);
     }
 
 }

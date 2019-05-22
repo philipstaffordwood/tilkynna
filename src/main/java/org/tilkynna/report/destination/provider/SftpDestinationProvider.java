@@ -16,7 +16,8 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.stereotype.Service;
 import org.tilkynna.ReportingConstants;
-import org.tilkynna.report.destination.integration.DynamicFtpChannelResolver;
+import org.tilkynna.common.error.ResourceNotFoundExceptions;
+import org.tilkynna.report.destination.integration.DynamicSftpChannelResolver;
 import org.tilkynna.report.destination.integration.SFTPConfigSettings;
 import org.tilkynna.report.destination.model.dao.DestinationEntityRepository;
 import org.tilkynna.report.destination.model.db.DestinationEntity;
@@ -30,11 +31,12 @@ public class SftpDestinationProvider implements DestinationProvider {
     private DestinationEntityRepository destinationRepository;
 
     @Autowired
-    private DynamicFtpChannelResolver dynamicFtpChannelResolver;
+    private DynamicSftpChannelResolver dynamicSftpChannelResolver;
 
     private SFTPConfigSettings extractSftpConfig(GeneratedReportEntity reportRequest, SFTPDestinationEntity sftp) {
         SFTPConfigSettings sftpConfig = new SFTPConfigSettings();
         sftpConfig.setDestinationId(sftp.getDestinationId());
+        sftpConfig.setUpdatedOn(sftp.getUpdatedOn());
         sftpConfig.setHost(sftp.getHost());
         sftpConfig.setPort(sftp.getPort());
         sftpConfig.setUsername(sftp.getUsername());
@@ -46,16 +48,18 @@ public class SftpDestinationProvider implements DestinationProvider {
         return sftpConfig;
     }
 
+    private DestinationEntity getDestinationEntity(UUID destinationId) {
+        return destinationRepository.findById(destinationId) //
+                .orElseThrow(() -> new ResourceNotFoundExceptions.Destination(destinationId.toString()));
+    }
+
     @Override
     public void write(GeneratedReportEntity reportRequest, byte[] reportFile) throws IOException {
         UUID destinationId = reportRequest.getDestination().getDestinationId();
-        Optional<DestinationEntity> destinationEntity = destinationRepository.findById(destinationId);
-        destinationEntity.isPresent();
-
-        SFTPDestinationEntity sftp = (SFTPDestinationEntity) destinationEntity.get();
+        SFTPDestinationEntity sftp = (SFTPDestinationEntity) getDestinationEntity(destinationId);
         SFTPConfigSettings sftpConfig = extractSftpConfig(reportRequest, sftp);
 
-        MessageChannel channel = dynamicFtpChannelResolver.resolve(sftpConfig);
+        MessageChannel channel = dynamicSftpChannelResolver.resolve(sftpConfig);
 
         Message<byte[]> message = //
                 MessageBuilder.withPayload(reportFile) //
@@ -76,6 +80,6 @@ public class SftpDestinationProvider implements DestinationProvider {
         sftpConfig.setUsername(destination2Test.getUsername());
         sftpConfig.setPassword(destination2Test.getPassword());
 
-        return dynamicFtpChannelResolver.test(sftpConfig);
+        return dynamicSftpChannelResolver.test(sftpConfig);
     }
 }

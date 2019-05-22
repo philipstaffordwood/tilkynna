@@ -27,6 +27,7 @@ import org.tilkynna.report.destination.model.db.DestinationTypes;
 import org.tilkynna.report.destination.provider.DestinationProvider;
 import org.tilkynna.report.destination.provider.DestinationProviderFactory;
 import org.tilkynna.report.destination.strategy.DestinationEntityStrategy;
+import org.tilkynna.security.SecurityContextUtility;
 
 @Service
 public class DestinationServiceImpl implements DestinationService {
@@ -59,6 +60,7 @@ public class DestinationServiceImpl implements DestinationService {
             throw new AlreadyExistsExceptions.Destination(destinationEntity.getName());
         }
 
+        destinationEntity.setUpdatedBy(UUID.fromString(SecurityContextUtility.getUserIdFromJwt()));
         destinationEntity.setActive(testConnection(destinationEntity));
         destinationEntityRepository.save(destinationEntity);
 
@@ -76,6 +78,7 @@ public class DestinationServiceImpl implements DestinationService {
 
         updateDestinationEntity.setDestinationParameters(existingDestination.getDestinationParameters());
         updateDestinationEntity.setDestinationId(existingDestination.getDestinationId());
+        updateDestinationEntity.setUpdatedBy(UUID.fromString(SecurityContextUtility.getUserIdFromJwt()));
         updateDestinationEntity.setActive(testConnection(updateDestinationEntity));
 
         destinationEntityRepository.save(updateDestinationEntity);

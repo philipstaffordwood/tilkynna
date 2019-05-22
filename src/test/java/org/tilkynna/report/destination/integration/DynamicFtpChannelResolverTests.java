@@ -40,7 +40,7 @@ public class DynamicFtpChannelResolverTests {
     }
 
     /**
-     * Test method for {@link org.tilkynna.report.destination.integration.DynamicFtpChannelResolver#resolve(SFTPDestinationEntity)}.
+     * Test method for {@link org.tilkynna.report.destination.integration.DynamicSftpChannelResolver#resolve(SFTPDestinationEntity)}.
      */
     @Test
     public void testResolve() {
@@ -49,7 +49,7 @@ public class DynamicFtpChannelResolverTests {
         SFTPDestinationEntity sftp2 = SFTPDestinationMockDataGenerator.setupSFTPDestinationEntity("SFTP_2");
         SFTPConfigSettings sftpConfig2 = extractSftpConfig(sftp2);
 
-        DynamicFtpChannelResolver dynamicFtpChannelResolver = new DynamicFtpChannelResolver();
+        DynamicSftpChannelResolver dynamicFtpChannelResolver = new DynamicSftpChannelResolver();
 
         MessageChannel channel1 = dynamicFtpChannelResolver.resolve(sftpConfig1);
         assertNotNull(channel1);
