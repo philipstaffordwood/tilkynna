@@ -26,6 +26,7 @@ public class SFTPDestinationMockDataGenerator {
         destination.setDescription("description");
         destination.setTimeout(new Long(56322));
         destination.setSecurityProtocol("ssl");
+        destination.setUpdatedBy(UUID.randomUUID());
 
         destination.setHost("sftp://localhost:5432");
         destination.setPort(new Long(23).shortValue());
