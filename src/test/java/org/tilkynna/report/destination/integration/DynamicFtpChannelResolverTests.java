@@ -34,6 +34,7 @@ public class DynamicFtpChannelResolverTests {
 
     private SFTPConfigSettings extractSftpConfig(SFTPDestinationEntity sftp) {
         SFTPConfigSettings sftpConfig = new SFTPConfigSettings();
+        sftpConfig.setDestinationId(sftp.getDestinationId());
         sftpConfig.setUpdatedOn(sftp.getUpdatedOn());
         sftpConfig.setHost(sftp.getHost());
         sftpConfig.setPort(sftp.getPort());
@@ -50,9 +51,13 @@ public class DynamicFtpChannelResolverTests {
     public void testResolve() {
         SFTPDestinationEntity sftp1 = SFTPDestinationMockDataGenerator.setupSFTPDestinationEntity("SFTP_1");
         sftp1.setUpdatedOn(ZonedDateTime.now());
+        sftp1.setDestinationId(UUID.randomUUID());
         SFTPConfigSettings sftpConfig1 = extractSftpConfig(sftp1);
+
         SFTPDestinationEntity sftp2 = SFTPDestinationMockDataGenerator.setupSFTPDestinationEntity("SFTP_2");
         sftp2.setUpdatedOn(ZonedDateTime.now());
+        sftp2.setDestinationId(UUID.randomUUID());
+        sftp2.setHost("google.com");
         SFTPConfigSettings sftpConfig2 = extractSftpConfig(sftp2);
 
         DynamicSftpChannelResolver dynamicFtpChannelResolver = new DynamicSftpChannelResolver();
@@ -62,7 +67,7 @@ public class DynamicFtpChannelResolverTests {
         MessageChannel channel2 = dynamicFtpChannelResolver.resolve(sftpConfig2);
         assertNotNull(channel2);
 
-        assertNotSame("assertNotSame: ", channel1, channel2);
+        assertNotSame("channel1 and channel2 should not be the same: ", channel1, channel2);
 
     }
 }
