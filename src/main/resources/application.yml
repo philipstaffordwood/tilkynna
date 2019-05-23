@@ -9,7 +9,8 @@ tilkynna:
       maxPoolSize: 300
       queueCapacity: 1000
     monitorPendingRequests: #config for monitoring PENDING report requests and publishing them to be processed 
-      fixedRateInMilliseconds: 1000
+      #1000ms = 1second
+      fixedRateInMilliseconds: 1000 
       initialDelayInMilliseconds: 5000
     monitorFailedRequests: #config for monitoring FAILED report requests and re enqueing them
       fixedRateInMilliseconds: 1000
@@ -84,7 +85,8 @@ logging:
     root: INFO
     org.springframework.security: ERROR
     org.tilkynna: DEBUG
-    org.tilkynna.report.generate: INFO
+    com.jcraft.jsch: ERROR
+    org.tilkynna.report.generate: ERROR
     #org.springframework.orm.jpa: DEBUG      
     #org.springframework.transaction: DEBUG
     #org.hibernate.engine: TRACE
