@@ -74,6 +74,7 @@ public class SftpDestinationProvider implements DestinationProvider {
     @Override
     public boolean testConnection(DestinationEntity destination) {
         SFTPDestinationEntity destination2Test = (SFTPDestinationEntity) destination;
+
         SFTPConfigSettings sftpConfig = new SFTPConfigSettings();
         sftpConfig.setHost(destination2Test.getHost());
         sftpConfig.setPort(destination2Test.getPort());

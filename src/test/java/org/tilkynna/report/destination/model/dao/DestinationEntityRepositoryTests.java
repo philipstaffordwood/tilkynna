@@ -34,7 +34,6 @@ public class DestinationEntityRepositoryTests {
         String destinationName = "STREAM_UNIT_TEST";
 
         SFTPDestinationEntity sftp = SFTPDestinationMockDataGenerator.setupSFTPDestinationEntity(destinationName);
-
         destinationEntityRepository.save(sftp);
 
         SFTPDestinationEntity sftpFromDB = (SFTPDestinationEntity) destinationEntityRepository.findByNameIgnoreCase(destinationName);
@@ -52,7 +51,6 @@ public class DestinationEntityRepositoryTests {
         String destinationName = "SMPT_UNIT_TEST";
 
         SMTPDestinationEntity smtp = SMTPDestinationMockDataGenerator.setupSMTPDestinationEntity(destinationName);
-
         destinationEntityRepository.save(smtp);
 
         SMTPDestinationEntity smtpFromDB = (SMTPDestinationEntity) destinationEntityRepository.findByNameIgnoreCase(destinationName);

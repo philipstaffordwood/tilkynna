@@ -7,69 +7,53 @@
 package org.tilkynna.report.destination;
 
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.mock;
+import static org.mockito.ArgumentMatchers.any;
+
+import java.util.UUID;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.openapitools.model.DestinationCreateBase;
 import org.openapitools.model.DestinationResponseBase;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.tilkynna.common.error.AlreadyExistsExceptions;
 import org.tilkynna.report.destination.assembler.DestinationAssembler;
+import org.tilkynna.report.destination.integration.DynamicSftpChannelResolver;
+import org.tilkynna.report.destination.integration.SFTPConfigSettings;
 import org.tilkynna.report.destination.mockdata.SFTPDestinationMockDataGenerator;
 import org.tilkynna.report.destination.model.dao.DestinationEntityRepository;
-import org.tilkynna.report.destination.provider.DestinationProvider;
-import org.tilkynna.report.destination.provider.DestinationProviderConfig;
 import org.tilkynna.report.destination.provider.DestinationProviderFactory;
 import org.tilkynna.report.destination.provider.SftpDestinationProvider;
-import org.tilkynna.report.destination.provider.StreamDestinationStorageProperties;
 import org.tilkynna.report.destination.strategy.DestinationEntityStrategy;
-import org.tilkynna.report.destination.strategy.DestinationEntityStrategyFactory;
+import org.tilkynna.report.destination.strategy.SFTPDestinationEntityStrategy;
+import org.tilkynna.security.SecurityContextUtility;
 
-import com.jcraft.jsch.ChannelSftp;
-
-@RunWith(SpringRunner.class)
-@ContextConfiguration(classes = { SftpDestinationProvider.class, DestinationProviderFactory.class, DestinationServiceImpl.class, DestinationEntityStrategyFactory.class, DestinationProviderConfig.class, DestinationAssembler.class, StreamDestinationStorageProperties.class }// ,
-                                                                                                                                                                                                                                                                                // //
-/* initializers = ConfigFileApplicationContextInitializer.class */)
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(SecurityContextUtility.class)
 public class DestinationServiceTests {
+    @InjectMocks
+    private DestinationServiceImpl destinationServiceUnderTest;
 
-    @MockBean
+    @Mock
     private DestinationEntityRepository destinationEntityRepository;
 
-    @MockBean
+    @Mock
     private DestinationProviderFactory destinationProviderFactory;
 
-    @Autowired
-    private DestinationService destinationService;
+    @Spy
+    private DestinationAssembler destinationAssembler = new DestinationAssembler();
 
-    @Autowired
-    private DestinationEntityStrategyFactory createDestinationStrategyFactory;
+    @InjectMocks
+    private SftpDestinationProvider sftp;
 
-    @Autowired
-    private DestinationProvider sftp;
-
-    private static com.jcraft.jsch.Session jschSession = mock(com.jcraft.jsch.Session.class);
-
-    @TestConfiguration
-    static class DestinationServiceTestContextConfiguration {
-
-        @Bean
-        public DestinationService destinationService() {
-            return new DestinationServiceImpl();
-        }
-
-        @Bean
-        public DestinationProvider sftp() {
-            return new SftpDestinationProvider();
-        }
-    }
+    @Mock
+    private DynamicSftpChannelResolver dynamicSftpChannelResolver;
 
     /**
      * Test method for {@link org.tilkynna.report.destination.DestinationServiceImpl#createDestination(DestinationEntityStrategy)}.
@@ -81,25 +65,26 @@ public class DestinationServiceTests {
         Mockito.when(destinationEntityRepository.existsByNameIgnoreCase("MyDestination")).thenReturn(true);
         Mockito.when(destinationProviderFactory.get(destinationCreateBase.getDestinationType().name())).thenReturn(sftp);
 
-        DestinationEntityStrategy createDestinationStrategy = createDestinationStrategyFactory.createStrategy(destinationCreateBase);
+        DestinationEntityStrategy createDestinationStrategy = new SFTPDestinationEntityStrategy(destinationCreateBase);
 
-        destinationService.createDestination(createDestinationStrategy);
+        destinationServiceUnderTest.createDestination(createDestinationStrategy);
     }
 
     @Test
     public void givenExistingDestination_whenCreate_thenValid() throws Exception {
         DestinationCreateBase destinationCreateBase = SFTPDestinationMockDataGenerator.createDestinationCreateBase("MyDestination");
 
-        ChannelSftp channel = mock(ChannelSftp.class);
-        Mockito.when(jschSession.openChannel("sftp")).thenReturn(channel);
+        PowerMockito.mockStatic(SecurityContextUtility.class);
+        Mockito.when(SecurityContextUtility.getUserIdFromJwt()).thenReturn(UUID.randomUUID().toString());
+
         Mockito.when(destinationEntityRepository.existsByNameIgnoreCase("MyDestination")).thenReturn(false);
         Mockito.when(destinationProviderFactory.get(destinationCreateBase.getDestinationType().name())).thenReturn(sftp);
+        Mockito.when(dynamicSftpChannelResolver.test(any(SFTPConfigSettings.class))).thenReturn(true);
 
-        DestinationEntityStrategy createDestinationStrategy = createDestinationStrategyFactory.createStrategy(destinationCreateBase);
+        DestinationEntityStrategy createDestinationStrategy = new SFTPDestinationEntityStrategy(destinationCreateBase);
 
-        DestinationResponseBase destinationResponseBase = destinationService.createDestination(createDestinationStrategy);
+        DestinationResponseBase destinationResponseBase = destinationServiceUnderTest.createDestination(createDestinationStrategy);
 
         assertNotNull(destinationResponseBase);
     }
-
 }

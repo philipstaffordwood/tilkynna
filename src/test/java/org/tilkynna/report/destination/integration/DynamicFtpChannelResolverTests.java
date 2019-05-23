@@ -9,6 +9,9 @@ package org.tilkynna.report.destination.integration;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 
+import java.time.ZonedDateTime;
+import java.util.UUID;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.messaging.MessageChannel;
@@ -31,6 +34,7 @@ public class DynamicFtpChannelResolverTests {
 
     private SFTPConfigSettings extractSftpConfig(SFTPDestinationEntity sftp) {
         SFTPConfigSettings sftpConfig = new SFTPConfigSettings();
+        sftpConfig.setUpdatedOn(sftp.getUpdatedOn());
         sftpConfig.setHost(sftp.getHost());
         sftpConfig.setPort(sftp.getPort());
         sftpConfig.setUsername(sftp.getUsername());
@@ -45,8 +49,10 @@ public class DynamicFtpChannelResolverTests {
     @Test
     public void testResolve() {
         SFTPDestinationEntity sftp1 = SFTPDestinationMockDataGenerator.setupSFTPDestinationEntity("SFTP_1");
+        sftp1.setUpdatedOn(ZonedDateTime.now());
         SFTPConfigSettings sftpConfig1 = extractSftpConfig(sftp1);
         SFTPDestinationEntity sftp2 = SFTPDestinationMockDataGenerator.setupSFTPDestinationEntity("SFTP_2");
+        sftp2.setUpdatedOn(ZonedDateTime.now());
         SFTPConfigSettings sftpConfig2 = extractSftpConfig(sftp2);
 
         DynamicSftpChannelResolver dynamicFtpChannelResolver = new DynamicSftpChannelResolver();
