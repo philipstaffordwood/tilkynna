@@ -7,7 +7,7 @@ tilkynna:
     scheduler:
       poolSize: 1
     threading:
-      poolSize: 15
+      poolSize: 4
       maxPoolSize: 300
       queueCapacity: 1
     monitorPendingRequests: #config for monitoring PENDING report requests and publishing them to be processed 
