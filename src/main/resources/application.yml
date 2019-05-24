@@ -4,13 +4,15 @@ tilkynna:
     location: tmp/templates
   generate: 
     hostname: http://localhost:9981
+    scheduler:
+      poolSize: 2
     threading:
       poolSize: 15
       maxPoolSize: 300
-      queueCapacity: 1000
+      queueCapacity: 1
     monitorPendingRequests: #config for monitoring PENDING report requests and publishing them to be processed 
       #1000ms = 1second
-      fixedRateInMilliseconds: 1000 
+      fixedRateInMilliseconds: 10 # make this like 100 ms
       initialDelayInMilliseconds: 5000
     monitorFailedRequests: #config for monitoring FAILED report requests and re enqueing them
       fixedRateInMilliseconds: 1000
@@ -86,7 +88,7 @@ logging:
     org.springframework.security: ERROR
     org.tilkynna: DEBUG
     com.jcraft.jsch: ERROR
-    org.tilkynna.report.generate: ERROR
+    org.tilkynna.report.generate: INFO
     #org.springframework.orm.jpa: DEBUG      
     #org.springframework.transaction: DEBUG
     #org.hibernate.engine: TRACE

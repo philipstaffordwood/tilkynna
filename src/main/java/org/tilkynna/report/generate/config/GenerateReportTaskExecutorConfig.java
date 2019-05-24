@@ -35,11 +35,11 @@ public class GenerateReportTaskExecutorConfig implements AsyncConfigurer {
     @Bean(name = "generateReportTaskExecutor")
     public Executor getAsyncExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(poolSize);
         executor.setThreadPriority(Thread.MIN_PRIORITY);
+        executor.setThreadNamePrefix("GenReport-");
+        executor.setCorePoolSize(poolSize);
         executor.setMaxPoolSize(maxPoolSize);
         executor.setQueueCapacity(queueCapacity);
-        executor.setThreadNamePrefix("GenReport-");
         executor.initialize();
 
         return executor;
