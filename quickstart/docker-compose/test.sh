@@ -131,8 +131,8 @@ showResults() {
 }
 
 #select count(*) from _reports.generated_report;
-#select requested_at, generated_at, age(generated_at, requested_at) as time_taken, report_status, retry_count  from _reports.generated_report WHERE report_status = 'FINISHED' ORDER BY generated_at;
 #select  (sum(age(generated_at, requested_at))/count(*)) as avg, count(*)  from _reports.generated_report WHERE report_status = 'FINISHED';
+#select requested_at, generated_at, age(generated_at, requested_at) as time_taken, report_status, retry_count  from _reports.generated_report WHERE report_status = 'FINISHED' ORDER BY generated_at;
 # -Xmx3g -Xms3g 
 
 ############## Main
@@ -140,8 +140,6 @@ showResults() {
 # We need to be called with an service name specification
 if [ -n "$1" ]; then
   	NUM_REPORTS="$1"
-  	rm -rf ../../tmp/reports/
-  	rm -rf ../../logs/
   	main
 else
   	echoRedBold "[ERROR] - Mandatory 1st argument 'NUM_REPORTS' not supplied."

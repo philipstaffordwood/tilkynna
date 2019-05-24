@@ -64,5 +64,8 @@
     <logger name="org.tilkynna.report.templates.TemplatesApiController" level="INFO" additivity="false">
         <appender-ref ref="GenerateRollingFile" />
     </logger>
+    <logger name="org.tilkynna.report.generate.GenerateReportQueueScheduler" level="INFO" additivity="false">
+        <appender-ref ref="GenerateRollingFile" />
+    </logger>
  
 </configuration>

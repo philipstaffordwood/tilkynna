@@ -5,14 +5,14 @@ tilkynna:
   generate: 
     hostname: http://localhost:9981
     scheduler:
-      poolSize: 2
+      poolSize: 1
     threading:
       poolSize: 15
       maxPoolSize: 300
       queueCapacity: 1
     monitorPendingRequests: #config for monitoring PENDING report requests and publishing them to be processed 
       #1000ms = 1second
-      fixedRateInMilliseconds: 10 # make this like 100 ms
+      fixedRateInMilliseconds: 1 # make this like 100 ms
       initialDelayInMilliseconds: 5000
     monitorFailedRequests: #config for monitoring FAILED report requests and re enqueing them
       fixedRateInMilliseconds: 1000

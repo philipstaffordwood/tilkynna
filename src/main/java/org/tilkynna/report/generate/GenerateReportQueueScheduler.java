@@ -45,20 +45,22 @@ public class GenerateReportQueueScheduler {
             initialDelayString = "${tilkynna.generate.monitorPendingRequests.initialDelayInMilliseconds}")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void scanGenerateReportRequests() {
-        log.debug("scanGenerateReportRequests START debug: {}", Thread.currentThread().getName());
+        // log.debug("scanGenerateReportRequests START debug: {}", Thread.currentThread().getName());
 
         GeneratedReportEntity reportRequest = generatedReportEntityRepository.findReportRequestsToEnqueue();
-        log.debug("scanGenerateReportRequests reportRequests: " + reportRequest);
+        // log.debug("scanGenerateReportRequests reportRequests: " + reportRequest);
 
         if (reportRequest != null) {
+            log.info(String.format("Start picked up by scheduler correlationId [%s] on Thread [%s]", reportRequest.getCorrelationId(), Thread.currentThread().getName()));
             generateReportQueueHandler.generateReportAsync(reportRequest);
+            log.info(String.format("End picked up by scheduler correlationId [%s] on Thread [%s]", reportRequest.getCorrelationId(), Thread.currentThread().getName()));
 
             reportRequest.setRetryCount(generateReportRetryPolicy.calculateRetryCount(reportRequest.getRetryCount()));
             reportRequest.setReportStatus(ReportStatusEntity.STARTED);
             generatedReportEntityRepository.save(reportRequest);
         }
 
-        log.debug("scanGenerateReportRequests END: {}", Thread.currentThread().getName());
+        // log.debug("scanGenerateReportRequests END: {}", Thread.currentThread().getName());
     }
 
     /**

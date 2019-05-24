@@ -84,3 +84,47 @@ TEST4 (same as above: just getting logs from Tilkynna too)
 	
 	tilkynna=# 
 		
+		
+TEST5
+	-Djava.security.egd=file:/dev/./urandom -Xmx1g -Xms1g -XX:ActiveProcessorCount=1 -Duser.timezone=UTC
+	scheduler:
+      poolSize: 15		
+    fixedRateInMilliseconds: 1 # make this like 100 ms
+    
+	tilkynna=# select count(*) from _reports.generated_report;
+	 count 
+	-------
+	   200
+	(1 row)
+	
+	tilkynna=# select  (sum(age(generated_at, requested_at))/count(*)) as avg, count(*)  from _reports.generated_report WHERE report_status = 'FINISHED';
+	       avg       | count 
+	-----------------+-------
+	 00:00:17.735445 |   200
+	(1 row)
+	
+	tilkynna=# 
+	
+	
+	
+TEST6
+	-Djava.security.egd=file:/dev/./urandom -Xmx1g -Xms1g -Duser.timezone=UTC  -XX:ActiveProcessorCount=2
+    scheduler:
+      poolSize: 1
+      	
+    tilkynna=# select count(*) from _reports.generated_report;
+	 count 
+	-------
+	   200
+	(1 row)
+	
+	tilkynna=# select  (sum(age(generated_at, requested_at))/count(*)) as avg, count(*)  from _reports.generated_report WHERE report_status = 'FINISHED';
+	       avg       | count 
+	-----------------+-------
+	 00:00:13.952913 |   104
+	(1 row)
+	
+	tilkynna=# 
+      
+	      
+		
