@@ -1,24 +1,23 @@
+#https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
 tilkynna:
   templates:
     storage: FileSystemContentRepository
     location: tmp/templates
   generate: 
     hostname: http://localhost:9981
-    scheduler:
-      poolSize: 1
     threading:
-      poolSize: 4
-      maxPoolSize: 300
+      poolSize: 8
+      maxPoolSize: 16
       queueCapacity: 1
     monitorPendingRequests: #config for monitoring PENDING report requests and publishing them to be processed 
       #1000ms = 1second
       fixedRateInMilliseconds: 1 # make this like 100 ms
-      initialDelayInMilliseconds: 5000
+      initialDelayInMilliseconds: 100
     monitorFailedRequests: #config for monitoring FAILED report requests and re enqueing them
-      fixedRateInMilliseconds: 1000
+      fixedRateInMilliseconds: 5000
       initialDelayInMilliseconds: 5000
     monitorStalledRequests: 
-      fixedRateInMilliseconds: 1000
+      fixedRateInMilliseconds: 5000
       initialDelayInMilliseconds: 5000
     retry: 
       maxAttempts: 3
@@ -29,6 +28,10 @@ tilkynna:
 
 server:
   port: 9981
+  # EMBEDDED SERVER CONFIGURATION
+#  tomcat:
+#    maxThreads: 400 # Maximum amount of worker threads.
+#    minSpareThreads: 20 # Minimum amount of worker threads.
 spring:
   datasource:
     initialization-mode: always
@@ -50,6 +53,11 @@ spring:
         temp:
           use_jdbc_metadata_defaults: false
     show-sql: false
+  # TASK SCHEDULING  (TaskSchedulingProperties)
+  task:
+    scheduling:
+      pool.size: 8 # Maximum allowed number of threads.
+      threadNamePrefix: gen-report-scheduling- # Prefix to use for the names of newly created threads.    
     
 #Security Properties
 rest:
@@ -86,7 +94,7 @@ logging:
   level:    
     root: INFO
     org.springframework.security: ERROR
-    org.tilkynna: DEBUG
+    org.tilkynna: INFO
     com.jcraft.jsch: ERROR
     org.tilkynna.report.generate: INFO
     #org.springframework.orm.jpa: DEBUG      

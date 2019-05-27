@@ -23,9 +23,8 @@ public class ReportRequestThreadPoolConfig {
 
         ThreadPoolTaskExecutor threadPoolTaskScheduler = new ThreadPoolTaskExecutor();
 
-        threadPoolTaskScheduler.setCorePoolSize(1000);
         threadPoolTaskScheduler.setThreadPriority(Thread.MAX_PRIORITY);
-        threadPoolTaskScheduler.setThreadNamePrefix("ReportReq-");
+        threadPoolTaskScheduler.setThreadNamePrefix("GenReportReq-");
         threadPoolTaskScheduler.initialize();
         return threadPoolTaskScheduler;
     }
