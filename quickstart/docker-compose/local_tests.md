@@ -109,3 +109,17 @@ TEST5
 	
 TEST6
 	
+	tilkynna=# select min(requested_at), max(generated_at), age(max(generated_at), min(requested_at)), count(*)   from _reports.generated_report WHERE report_status = 'FINISHED';
+	            min            |            max             |     age      | count 
+	---------------------------+----------------------------+--------------+-------
+	 2019-05-27 15:29:13.52+00 | 2019-05-27 15:43:01.696+00 | 00:13:48.176 | 10000
+	(1 row)
+
+tilkynna=# select  (sum(age(generated_at, requested_at))/count(*)) as avg, count(*)  from _reports.generated_report WHERE report_status = 'FINISHED';
+       avg       | count 
+-----------------+-------
+ 00:00:00.507647 | 10000
+(1 row)
+
+tilkynna=# 
+	

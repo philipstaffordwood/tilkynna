@@ -130,8 +130,15 @@ showResults() {
 	echo ""
 }
 
-#select count(*) from _reports.generated_report;
+#insert into _reports.generated_report  (requested_at, generated_at, requested_by, destination_id, template_id, retry_count, report_status, request_body, export_format_id) select now(), now(), requested_by, destination_id, template_id, retry_count, report_status, request_body, export_format_id from _reports.generated_report;
+
+
+#docker exec -u postgres tilkynnadb pg_dump -c tilkynna > dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
+#update _reports.generated_report set report_status = 'PENDING', requested_at = now(), generated_at=now();
+
+# select report_status, count(*) from _reports.generated_report GROUP BY report_status;
 #select  (sum(age(generated_at, requested_at))/count(*)) as avg, count(*)  from _reports.generated_report WHERE report_status = 'FINISHED';
+#select min(requested_at), max(generated_at), age(max(generated_at), min(requested_at)), count(*)   from _reports.generated_report WHERE report_status = 'FINISHED';
 #select requested_at, generated_at, age(generated_at, requested_at) as time_taken, report_status, retry_count  from _reports.generated_report WHERE report_status = 'FINISHED' ORDER BY generated_at;
 # -Xmx3g -Xms3g 
 

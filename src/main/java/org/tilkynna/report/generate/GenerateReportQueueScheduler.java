@@ -32,6 +32,9 @@ public class GenerateReportQueueScheduler {
     @Autowired
     private GenerateReportRetryPolicyImpl generateReportRetryPolicy;
 
+    @Autowired
+    private AsyncTask asyncTask; // https://stackoverflow.com/questions/48233445/spring-boot-scheduled-not-running-in-different-threads
+
     /**
      * Runs enqueued generate report requests <br/>
      * Scheduler execution doesn’t wait for the completion of the previous execution. <br/>
@@ -41,26 +44,13 @@ public class GenerateReportQueueScheduler {
      * Call .. generateReportQueueHandler.generateReport(reportRequest); asynchronously so that we can <br/>
      * update status to STARTED in this transaction and commit for others to see. <br/>
      */
+    // https://stackoverflow.com/questions/48233445/spring-boot-scheduled-not-running-in-different-threads
     @Scheduled(fixedRateString = "${tilkynna.generate.monitorPendingRequests.fixedRateInMilliseconds}", //
             initialDelayString = "${tilkynna.generate.monitorPendingRequests.initialDelayInMilliseconds}")
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void scanGenerateReportRequests() {
-        // log.debug("scanGenerateReportRequests START debug: {}", Thread.currentThread().getName());
+        log.info("scanGenerateReportRequests START debug 1: {}", Thread.currentThread().getName());
+        asyncTask.asyncMethod2();
 
-        GeneratedReportEntity reportRequest = generatedReportEntityRepository.findReportRequestsToEnqueue();
-        // log.debug("scanGenerateReportRequests reportRequests: " + reportRequest);
-
-        if (reportRequest != null) {
-            log.info(String.format("Start picked up by scheduler correlationId [%s] on Thread [%s]", reportRequest.getCorrelationId(), Thread.currentThread().getName()));
-            generateReportQueueHandler.generateReportAsync(reportRequest);
-            log.info(String.format("End picked up by scheduler correlationId [%s] on Thread [%s]", reportRequest.getCorrelationId(), Thread.currentThread().getName()));
-
-            reportRequest.setRetryCount(generateReportRetryPolicy.calculateRetryCount(reportRequest.getRetryCount()));
-            reportRequest.setReportStatus(ReportStatusEntity.STARTED);
-            generatedReportEntityRepository.save(reportRequest);
-        }
-
-        // log.debug("scanGenerateReportRequests END: {}", Thread.currentThread().getName());
     }
 
     /**

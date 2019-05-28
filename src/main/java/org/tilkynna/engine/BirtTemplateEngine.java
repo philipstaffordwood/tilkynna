@@ -114,6 +114,7 @@ public class BirtTemplateEngine implements TemplateEngine {
             }
 
             renderTask.getAppContext().put("OdaJDBCDriverPassInConnection", conn);
+            // TODO: BIRT can u override setting for clossing of the connections
         });
     }
 
