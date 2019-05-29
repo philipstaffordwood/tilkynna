@@ -8,6 +8,7 @@ package org.tilkynna.report.generate;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.UUID;
 
 import org.eclipse.birt.core.exception.BirtException;
 import org.openapitools.model.TemplateGenerateRemoteRequestBase;
@@ -54,6 +55,48 @@ public class GenerateReportQueueHandler {
 
     @Autowired
     private DestinationProviderFactory destinationProviderFactory;
+
+    // @Async("generateReportTaskExecutor")
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void generateReport(UUID correlationId) {
+        log.info(String.format("Report picked up by GenerateReportQueueHandler correlationId [%s] on Thread [%s]", correlationId, Thread.currentThread().getName()));
+
+        GeneratedReportEntity generatedReportEntity = generatedReportEntityRepository.findById(correlationId) //
+                .orElseThrow(() -> new ResourceNotFoundExceptions.GeneratedReportEntity(correlationId.toString()));
+
+        try {
+            validateGenerateReportRequest(generatedReportEntity);
+            byte[] generatedReport = generateReport(generatedReportEntity);
+            writeReportToDestination(generatedReportEntity, generatedReportEntity.getDestination(), generatedReport);
+
+            generatedReportEntity.setReportStatus(ReportStatusEntity.FINISHED);
+
+            // TODO call the callback URL
+
+        } catch (IOException | ParseException | BirtException | ReportDatasourceExceptionException | TemplateHasInactiveDatasourcesException knownException) {
+            log.info(String.format("knownException Generating Report correlationId [%s] on Thread [%s]", generatedReportEntity.getCorrelationId(), Thread.currentThread().getName()));
+            log.error("knownException: {}", knownException.getMessage());
+
+            generatedReportEntity.setReportStatus(ReportStatusEntity.FAILED);
+
+        } catch (MessageHandlingException e) { // TODO can I handle connection failures to destination in a cleaner way?
+            // JSchException ..
+            // ((org.springframework.messaging.MessageHandlingException)unknownException).getMostSpecificCause()
+            log.info(String.format("knownException MessageHandlingException Generating Report correlationId [%s] on Thread [%s]", generatedReportEntity.getCorrelationId(), Thread.currentThread().getName()));
+            log.error("knownException MessageHandlingException: {}", e.getMessage());
+
+            generatedReportEntity.setReportStatus(ReportStatusEntity.FAILED);
+        } catch (Exception unknownException) {
+            log.info(String.format("unknownException Generating Report correlationId [%s] on Thread [%s]", generatedReportEntity.getCorrelationId(), Thread.currentThread().getName()));
+            log.error("unknownException: {}", unknownException.getMessage());
+
+            generatedReportEntity.setReportStatus(ReportStatusEntity.FAILED);
+        }
+
+        log.info(String.format("start update status for ReportEntity correlationId [%s] on Thread [%s]", correlationId, Thread.currentThread().getName()));
+        generatedReportEntityRepository.save(generatedReportEntity);
+        log.info(String.format("end update status for ReportEntity correlationId [%s] on Thread [%s]", correlationId, Thread.currentThread().getName()));
+    }
 
     @Async("generateReportTaskExecutor")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
