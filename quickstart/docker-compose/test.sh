@@ -134,13 +134,21 @@ showResults() {
 
 
 #docker exec -u postgres tilkynnadb pg_dump -c tilkynna > dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
-#update _reports.generated_report set report_status = 'PENDING', requested_at = now(), generated_at=now();
+#docker run -d --name externaldb -p 5433:5432 -v "$PWD/my-postgres.conf":/etc/postgresql/postgresql.conf -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=tilkynna postgres:10-alpine -c 'config_file=/etc/postgresql/postgresql.conf'
+#docker exec -i externaldb psql -U postgres -d tilkynna <  dump_28-05-2019_17_06_39.sql
 
+
+#update _reports.generated_report set report_status = 'PENDING', requested_at = now(), generated_at=now();
 # select report_status, count(*) from _reports.generated_report GROUP BY report_status;
 #select  (sum(age(generated_at, requested_at))/count(*)) as avg, count(*)  from _reports.generated_report WHERE report_status = 'FINISHED';
 #select min(requested_at), max(generated_at), age(max(generated_at), min(requested_at)), count(*)   from _reports.generated_report WHERE report_status = 'FINISHED';
 #select requested_at, generated_at, age(generated_at, requested_at) as time_taken, report_status, retry_count  from _reports.generated_report WHERE report_status = 'FINISHED' ORDER BY generated_at;
+
 # -Xmx3g -Xms3g 
+
+#insert into _reports.generated_report (requested_at, generated_at, requested_by, destination_id, template_id, export_format_id, report_status, retry_count, request_body) select now(), now(), requested_by, destination_id, template_id, export_format_id, report_status, retry_count, request_body from _reports.generated_report;
+
+
 
 ############## Main
 
