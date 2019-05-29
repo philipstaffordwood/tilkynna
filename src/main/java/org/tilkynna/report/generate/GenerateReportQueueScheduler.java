@@ -49,7 +49,7 @@ public class GenerateReportQueueScheduler {
             initialDelayString = "${tilkynna.generate.monitorPendingRequests.initialDelayInMilliseconds}")
     public void scanGenerateReportRequests() {
         log.info("scanGenerateReportRequests START debug 1: {}", Thread.currentThread().getName());
-        asyncTask.asyncGetListModelGenerateReportRequests();
+        asyncTask.asyncGetListStringGenerateReportRequests();
     }
 
     /**

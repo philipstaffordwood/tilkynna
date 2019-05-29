@@ -3,9 +3,11 @@ package org.tilkynna.report.generate;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Executor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +31,9 @@ public class AsyncTask {
 
     @Autowired
     private GenerateReportRetryPolicyImpl generateReportRetryPolicy;
+
+    @Autowired
+    private Executor generateReportTaskExecutor;
 
     @Async("generateReportTaskExecutor1")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -72,7 +77,7 @@ public class AsyncTask {
         log.info("scanGenerateReportRequests END: {}", Thread.currentThread().getName());
     }
 
-    @Async("generateReportTaskExecutor1")
+    // @Async("generateReportTaskExecutor1")
     public void asyncGetListStringGenerateReportRequests() {
         List<String> correlationIds = generatedReportEntityRepository.findReportRequestsToEnqueueS();
 
@@ -82,8 +87,11 @@ public class AsyncTask {
                 String correlationIdStr = iterator.next();
                 UUID correlationId = UUID.fromString(correlationIdStr);
 
+                log.error(String.format("generateReportTaskExecutor.size [%s]", //
+                        ((ThreadPoolTaskExecutor) generateReportTaskExecutor).getThreadPoolExecutor().getQueue().size()));
+
                 log.info(String.format("Start picked up by scheduler correlationId [%s] on Thread [%s]", correlationId, Thread.currentThread().getName()));
-                generateReportQueueHandler.generateReport(correlationId);
+                generateReportQueueHandler.generateReportAsync(correlationId);
                 log.info(String.format("End picked up by scheduler correlationId [%s] on Thread [%s]", correlationId, Thread.currentThread().getName()));
 
             }

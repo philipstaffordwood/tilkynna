@@ -6,9 +6,9 @@ tilkynna:
   generate: 
     hostname: http://localhost:9981
     threading:
-      poolSize: 200
-      maxPoolSize: 32
-      queueCapacity: 1
+      poolSize: 30
+      maxPoolSize: 50
+      queueCapacity: 100
     monitorPendingRequests: #config for monitoring PENDING report requests and publishing them to be processed 
       #1000ms = 1second
       fixedRateInMilliseconds: 1 # make this like 100 ms

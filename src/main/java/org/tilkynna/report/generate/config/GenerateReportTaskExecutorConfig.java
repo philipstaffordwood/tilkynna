@@ -39,26 +39,25 @@ public class GenerateReportTaskExecutorConfig /* implements AsyncConfigurer */ {
     public Executor getAsyncExecutor1() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setThreadPriority(Thread.MIN_PRIORITY); //
-        executor.setThreadNamePrefix("GenReport1-");
-        executor.setCorePoolSize(poolSize);
-        // executor.setMaxPoolSize(maxPoolSize);
-        executor.setMaxPoolSize(Integer.MAX_VALUE);
-        executor.setQueueCapacity(queueCapacity);
-        // executor.setQueueCapacity(Integer.MAX_VALUE);
+        executor.setThreadNamePrefix("GenReportAquisition-");
+        executor.setCorePoolSize(2);
+        executor.setMaxPoolSize(4);
+        // executor.setMaxPoolSize(Integer.MAX_VALUE);
+        // executor.setQueueCapacity(queueCapacity);
+        executor.setQueueCapacity(20);
         executor.initialize();
 
         return executor;
     }
 
-    // @Override
     @Bean(name = "generateReportTaskExecutor")
     public Executor getAsyncExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setThreadPriority(Thread.MIN_PRIORITY);
-        executor.setThreadNamePrefix("GenReport-");
+        executor.setThreadNamePrefix("GenReportProcessEngine-");
         executor.setCorePoolSize(poolSize);
-        // executor.setMaxPoolSize(maxPoolSize);
-        executor.setMaxPoolSize(Integer.MAX_VALUE);
+        executor.setMaxPoolSize(maxPoolSize);
+        // executor.setMaxPoolSize(Integer.MAX_VALUE);
         executor.setQueueCapacity(queueCapacity);
         // executor.setQueueCapacity(Integer.MAX_VALUE);
         executor.initialize();

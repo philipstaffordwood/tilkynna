@@ -23,7 +23,7 @@ public class SchedulerConfig implements SchedulingConfigurer {
     /**
      * The pool size.
      */
-    private static final int POOL_SIZE = 10;
+    private static final int POOL_SIZE = 4;
 
     /**
      * Configures the scheduler to allow multiple pools.

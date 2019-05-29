@@ -17,8 +17,8 @@ public class StartWorkers implements ApplicationListener<ContextRefreshedEvent> 
     public void onApplicationEvent(ContextRefreshedEvent event) {
         // Random randomGenerator = new Random();
         //
-        // for (int i = 0; i < 100; i++) {
-        // Thread thread1 = new Thread(generateReportQueueRunnable, "GenRepWorker-" + i);
+        // for (int i = 0; i < 2; i++) {
+        // Thread thread1 = new Thread(generateReportQueueRunnable, "GenReportWorkerAquisition-" + i);
         // try {
         // int randomInt = randomGenerator.nextInt(5) + 1;
         // Thread.sleep(randomInt * 1000);
