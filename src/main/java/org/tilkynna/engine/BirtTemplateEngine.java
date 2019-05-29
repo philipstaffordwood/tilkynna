@@ -14,12 +14,15 @@ import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,6 +41,8 @@ import org.eclipse.birt.report.engine.api.PDFRenderOption;
 import org.eclipse.birt.report.engine.api.RenderOption;
 import org.eclipse.birt.report.engine.emitter.csv.CSVRenderOption;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.stereotype.Service;
 import org.tilkynna.ReportingConstants;
 import org.tilkynna.common.error.TemplateEngineExceptions;
@@ -45,7 +50,12 @@ import org.tilkynna.engine.model.TemplateEngineParameter;
 import org.tilkynna.lookup.driver.DriversLocationProperties;
 import org.tilkynna.report.datasource.model.db.DatasourceEntity;
 import org.tilkynna.report.datasource.model.db.JDBCDatasourceEntity;
+import org.tilkynna.report.destination.integration.SFTPConfigSettings;
+import org.tilkynna.report.destination.integration.DynamicSftpChannelResolver.Channel;
 import org.tilkynna.report.generate.GenerateReportExceptions;
+
+import lombok.Getter;
+import lombok.Setter;
 
 //https://spring.io/blog/2012/01/30/spring-framework-birt
 @Service("rptdesign")
@@ -100,21 +110,60 @@ public class BirtTemplateEngine implements TemplateEngine {
         return buf;
     }
 
+    @Setter
+    @Getter
+    public class ConnectionItem {
+        Connection conn = null;
+
+        public ConnectionItem(Connection conn) {
+            this.conn = conn;
+        }
+    }
+
+    private final LinkedHashMap<UUID, ConnectionItem> connections = new LinkedHashMap<>();
+
+    @SuppressWarnings("resource")
+    private synchronized Connection createOrUpdateConnection(JDBCDatasourceEntity jdbcDatasource) {
+        ConnectionItem connectionItem = this.connections.get(jdbcDatasource.getId());
+
+        if (connectionItem == null) {
+            Connection conn = null;
+            try {
+                conn = DriverManager.getConnection(jdbcDatasource.getDbUrl(), jdbcDatasource.getUsername(), new String(jdbcDatasource.getPassword()));
+                conn.isValid(5);
+            } catch (SQLException e) {
+                throw new GenerateReportExceptions.ReportDatasourceExceptionException(jdbcDatasource.getId().toString());
+            }
+
+            connectionItem = new ConnectionItem(conn);
+            this.connections.put(jdbcDatasource.getId(), connectionItem);
+        }
+
+        return connectionItem.getConn();
+    }
+
+    private Connection getConnection(DatasourceEntity ds, JDBCDatasourceEntity jdbcDatasource, Connection conn) {
+        try {
+            conn = DriverManager.getConnection(jdbcDatasource.getDbUrl(), jdbcDatasource.getUsername(), new String(jdbcDatasource.getPassword()));
+            conn.isValid(5);
+        } catch (SQLException e) {
+            throw new GenerateReportExceptions.ReportDatasourceExceptionException(ds.getId().toString());
+        }
+        return conn;
+    }
+
     private void setupDatasourcesForTask(Set<DatasourceEntity> datasources, IRunAndRenderTask renderTask) {
         renderTask.getAppContext().put("OdaJDBCDriverClassPath", driverLocationProperties.getLocation());
 
         datasources.forEach(ds -> { // THE CODE BELOW works when you only have one datasource
             JDBCDatasourceEntity jdbcDatasource = (JDBCDatasourceEntity) ds;
             Connection conn = null;
-            try {
-                conn = DriverManager.getConnection(jdbcDatasource.getDbUrl(), jdbcDatasource.getUsername(), new String(jdbcDatasource.getPassword()));
-                conn.isValid(5);
-            } catch (SQLException e) {
-                throw new GenerateReportExceptions.ReportDatasourceExceptionException(ds.getId().toString());
-            }
+            conn = createOrUpdateConnection(jdbcDatasource);
+            // conn = getConnection(ds, jdbcDatasource, conn);
 
             renderTask.getAppContext().put("OdaJDBCDriverPassInConnection", conn);
             // TODO: BIRT can u override setting for clossing of the connections
+            renderTask.getAppContext().put("OdaJDBCDriverPassInConnectionCloseAfterUse", false);
         });
     }
 
