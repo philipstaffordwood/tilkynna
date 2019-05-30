@@ -19,7 +19,8 @@ import org.springframework.stereotype.Repository;
 public interface GeneratedReportEntityRepository extends JpaRepository<GeneratedReportEntity, UUID>, JpaSpecificationExecutor<GeneratedReportEntity> {
 
     /**
-     * Finds awaiting GenerateReportEntity(report_request)'s that are in 'PENDING' status: Ordered By Priority, RetryCount, Requested date. <br/>
+     * Finds awaiting GenerateReportEntity(report_request)'s that are in 'PENDING' status: <br/>
+     * Ordered By Priority, RetryCount, Requested date. <br/>
      * Such that the highest priority requests are dealt with first.
      * 
      * downloadable 'are essentially streamed reports for UI' therefore higher priority <br/>
@@ -42,7 +43,7 @@ public interface GeneratedReportEntityRepository extends JpaRepository<Generated
             "   FROM   jobs " + //
             "   WHERE  r.correlation_id = jobs.correlation_id " + //
             "   RETURNING CAST(r.correlation_id AS VARCHAR) ", nativeQuery = true)
-    public List<String> findReportRequestsCorrelationIdsEnqueue();
+    public List<String> getBatchOfPendingGenerateReportJobs();
 
     /**
      * Finds GenerateReportEntity(report_request)'s that are in 'FAILED' status for more than x milliseconds: Ordered By Priority, RetryCount, Requested date. <br/>

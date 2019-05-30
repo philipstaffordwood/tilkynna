@@ -32,7 +32,7 @@ public class GenerateReportTaskExecutorConfig {
     @Value("${tilkynna.generate.threading.queueCapacity}")
     int queueCapacity;
 
-    @Bean(name = "generateReportTaskExecutor")
+    @Bean(name = "generateReportThreadPoolExecutor")
     public Executor getAsyncExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setThreadPriority(Thread.MIN_PRIORITY);

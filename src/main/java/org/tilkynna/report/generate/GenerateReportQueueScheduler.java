@@ -30,10 +30,12 @@ public class GenerateReportQueueScheduler {
     private GenerateReportRetryPolicyImpl generateReportRetryPolicy;
 
     @Autowired
-    private GenerateReportAcquisitionThread asyncTask; // https://stackoverflow.com/questions/48233445/spring-boot-scheduled-not-running-in-different-threads
+    private GenerateReportJobsAcquirer generateReportJobsAcquirer; // https://stackoverflow.com/questions/48233445/spring-boot-scheduled-not-running-in-different-threads
 
     /**
-     * Runs enqueued generate report requests <br/>
+     * Retrieves jobs from the database (generated_report table) that <br/>
+     * will be pushed onto the GenerateReportThreadPoolQueue for executed next.<br/>
+     * 
      * Scheduler execution doesn’t wait for the completion of the previous execution. <br/>
      * Starts on a new run every fixedRateString milliseconds (as each run is on its own thread & don't interact with each other)
      * 
@@ -44,9 +46,9 @@ public class GenerateReportQueueScheduler {
     // https://stackoverflow.com/questions/48233445/spring-boot-scheduled-not-running-in-different-threads
     @Scheduled(fixedRateString = "${tilkynna.generate.monitorPendingRequests.fixedRateInMilliseconds}", //
             initialDelayString = "${tilkynna.generate.monitorPendingRequests.initialDelayInMilliseconds}")
-    public void scanGenerateReportRequests() {
+    public void acquireGenerateReportJobsInPendingStatus() {
         log.info("scanGenerateReportRequests START debug 1: {}", Thread.currentThread().getName());
-        asyncTask.asyncGetListStringGenerateReportRequests();
+        generateReportJobsAcquirer.getPendingJobsAndPushToGenerateReportThreadPool();
     }
 
     /**

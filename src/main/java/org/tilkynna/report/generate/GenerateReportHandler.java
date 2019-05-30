@@ -40,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 //https://www.devglan.com/spring-boot/spring-boot-async-task-executor
 @Slf4j
 @Component
-public class GenerateReportQueueHandler {
+public class GenerateReportHandler {
     @Autowired
     private GeneratedReportEntityRepository generatedReportEntityRepository;
 
@@ -53,9 +53,9 @@ public class GenerateReportQueueHandler {
     @Autowired
     private DestinationProviderFactory destinationProviderFactory;
 
-    @Async("generateReportTaskExecutor")
+    @Async("generateReportThreadPoolExecutor")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void generateReportAsync(UUID correlationId) {
+    public void pushGenerateReportToThreadPoolForProcessing(UUID correlationId) {
         log.info(String.format("Report picked up by GenerateReportQueueHandler correlationId [%s] on Thread [%s]", correlationId, Thread.currentThread().getName()));
 
         GeneratedReportEntity generatedReportEntity = generatedReportEntityRepository.findById(correlationId) //
