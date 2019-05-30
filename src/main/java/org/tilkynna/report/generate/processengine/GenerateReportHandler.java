@@ -4,7 +4,7 @@
  * License MIT: https://opensource.org/licenses/MIT
  * **************************************************
  */
-package org.tilkynna.report.generate;
+package org.tilkynna.report.generate.processengine;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -25,6 +25,8 @@ import org.tilkynna.report.destination.model.dao.DestinationEntityRepository;
 import org.tilkynna.report.destination.model.db.DestinationEntity;
 import org.tilkynna.report.destination.provider.DestinationProvider;
 import org.tilkynna.report.destination.provider.DestinationProviderFactory;
+import org.tilkynna.report.generate.GenerateReportExceptions;
+import org.tilkynna.report.generate.GenerateReportService;
 import org.tilkynna.report.generate.GenerateReportExceptions.ReportDatasourceExceptionException;
 import org.tilkynna.report.generate.model.db.GeneratedReportEntity;
 import org.tilkynna.report.generate.model.db.GeneratedReportEntityRepository;

@@ -4,7 +4,7 @@
  * License MIT: https://opensource.org/licenses/MIT
  * **************************************************
  */
-package org.tilkynna.report.generate.config;
+package org.tilkynna.report.generate.processengine.config;
 
 import java.util.concurrent.Executor;
 
@@ -21,7 +21,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  */
 @Configuration
 @EnableAsync
-public class GenerateReportTaskExecutorConfig {
+public class GenerateReportThreadPoolExecutorConfig {
 
     @Value("${tilkynna.generate.threading.poolSize}")
     int poolSize;
@@ -35,8 +35,9 @@ public class GenerateReportTaskExecutorConfig {
     @Bean(name = "generateReportThreadPoolExecutor")
     public Executor getAsyncExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+
         executor.setThreadPriority(Thread.MIN_PRIORITY);
-        executor.setThreadNamePrefix("GenReportEngine-");
+        executor.setThreadNamePrefix("GenReportHandler-");
         executor.setCorePoolSize(poolSize);
         executor.setMaxPoolSize(maxPoolSize);
         executor.setQueueCapacity(queueCapacity);

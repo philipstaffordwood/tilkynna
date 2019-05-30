@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.ConfigFileApplicationContextInitializer;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.tilkynna.report.generate.config.GenerateReportRetryPolicyConfig;
+import org.tilkynna.report.generate.processengine.config.GenerateReportRetryPolicyConfig;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = { GenerateReportRetryPolicyConfig.class, GenerateReportRetryPolicyImpl.class }, //

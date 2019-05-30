@@ -4,7 +4,7 @@
  * License MIT: https://opensource.org/licenses/MIT
  * **************************************************
  */
-package org.tilkynna.report.generate;
+package org.tilkynna.report.generate.processengine;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Transactional
 @Component
-public class GenerateReportQueueScheduler {
+public class GenerateReportScheduler {
 
     @Autowired
     private GeneratedReportEntityRepository generatedReportEntityRepository;
