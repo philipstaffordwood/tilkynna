@@ -1,5 +1,7 @@
 #https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
 tilkynna:
+  scheduler:  
+    poolSize: 4
   templates:
     storage: FileSystemContentRepository
     location: tmp/templates

@@ -6,6 +6,7 @@
  */
 package org.tilkynna.report.generate.processengine.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -23,6 +24,7 @@ public class SchedulerConfig implements SchedulingConfigurer {
     /**
      * The pool size.
      */
+	@Value("${tilkynna.scheduler.poolSize}")
     private static final int POOL_SIZE = 4;
 
     /**

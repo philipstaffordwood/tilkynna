@@ -1,4 +1,6 @@
 tilkynna:
+  scheduler:  
+    poolSize: 4
   templates:
     storage: FileSystemContentRepository
     location: tmp/templates
