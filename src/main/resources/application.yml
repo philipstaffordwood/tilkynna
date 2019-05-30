@@ -36,7 +36,7 @@ spring:
   datasource:
     initialization-mode: always
     url: jdbc:postgresql://localhost:5432/tilkynna?user=postgres&password=postgres
-remove   flyway:
+  flyway:
     enabled: true
     group: true
     locations: classpath:db/migration/{vendor}
