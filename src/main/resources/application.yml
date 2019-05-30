@@ -36,41 +36,7 @@ spring:
   datasource:
     initialization-mode: always
     url: jdbc:postgresql://localhost:5432/tilkynna?user=postgres&password=postgres
-    tomcat:      
-      #### below deals with abandoned connections ####
-      # Flag to log stack traces for application code which abandoned a Connection. Logging of abandoned Connections adds overhead for every Connection borrow because a stack trace has to be generated. The default value is false.
-      log-abandoned: false
-      # Flag to remove abandoned connections if they exceed the removeAbandonedTimeout. If set to true a connection is considered abandoned and eligible for removal if it has been in use longer than the removeAbandonedTimeout Setting this to true can recover db connections from applications that fail to close a connection. See also logAbandoned The default value is false.
-      remove-abandoned: true
-      # Timeout in seconds before an abandoned(in use) connection can be removed. The default value is 60 (60 seconds). The value should be set to the longest running query your applications might have
-      remove-abandoned-timeout: 20
-
-      #### below deals with validating connections ####
-      # Set this to true to log errors during the validation phase to the log file. If set to true, errors will be logged as SEVERE. Default value is false for backwards compatibility.
-      log-validation-errors: false
-      # The indication of whether objects will be validated before being borrowed from the pool. If the object fails to validate, it will be dropped from the pool, and we will attempt to borrow another. In order to have a more efficient validation, see validationInterval. Default value is false
-      test-on-borrow: true
-      # The indication of whether objects will be validated by the idle object evictor (if any). If an object fails to validate, it will be dropped from the pool. The default value is false and this property has to be set in order for the pool cleaner/test thread is to run
-      test-while-idle: true
-      # The indication of whether objects will be validated when a connection is first created. If an object fails to validate, it will be throw SQLException. Default value is false
-      test-on-connect: true
-      # avoid excess validation, only run validation at most at this frequency - time in milliseconds. If a connection is due for validation, but has been validated previously within this interval, it will not be validated again. The default value is 3000 (3 seconds).
-      validation-interval: 3000
-      # The timeout in seconds before a connection validation queries fail. This works by calling java.sql.Statement.setQueryTimeout(seconds) on the statement that executes the validationQuery. The pool itself doesn't timeout the query, it is still up to the JDBC driver to enforce query timeouts. The default value is -1.
-      validation-query-timeout: 3
-      # The SQL query that will be used to validate connections from this pool before returning them to the caller
-      validation-query: select now()
-      
-      #### below deals with the connection pool ####
-      # The maximum number of milliseconds that the pool will wait (when there are no available connections) for a connection to be returned before throwing an exception. Default value is 30000
-      max-wait: 30000
-      # The maximum number of active connections that can be allocated from this pool at the same time. The default value is 100
-      maxActive: 90
-      # The initial number of connections that are created when the pool is started. Default value is 10
-      initialSize: 10
-      # socketTimeout: The timeout value used for socket read operations. If reading from the server takes longer than this value, the connection is closed. These are semicolon delimited.
-      connection-properties: socketTimeout=15;
-  flyway:
+remove   flyway:
     enabled: true
     group: true
     locations: classpath:db/migration/{vendor}
@@ -87,11 +53,6 @@ spring:
         temp:
           use_jdbc_metadata_defaults: false
     show-sql: false
-  # TASK SCHEDULING  (TaskSchedulingProperties)
-#  task:
-#    scheduling:
-#      pool.size: 16 # Maximum allowed number of threads.
-#      threadNamePrefix: gen-report-scheduling- # Prefix to use for the names of newly created threads.    
     
 #Security Properties
 rest:
