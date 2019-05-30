@@ -26,22 +26,10 @@ public interface GeneratedReportEntityRepository extends JpaRepository<Generated
      * highest retryCount first so that those already failed, can be enqueued first <br/>
      * and oldest requested_at so that earliest requests are dealt with first
      * 
-     * @return GenerateReportEntity(report_request) of hightest priority to be enqueued for processing next
+     * Limiting to 30 to align with m
+     * 
+     * @return String of highest priority correlationId for reportRequest to be enqueued for processing next
      */
-    @Query(value = " SELECT *, CASE  d.downloadable  WHEN true THEN 1 END as priority " + // downloadable reports have higher priority (they are essentially streamed reports for UI)
-            " FROM _reports.generated_report r " + //
-            " JOIN _reports.destination d ON r.destination_id = d.destination_id " + // destinations gives us priority
-            " WHERE cast(report_status AS varchar) = 'PENDING' " + //
-            " ORDER BY priority, retry_count DESC, requested_at ASC " + " LIMIT 1 FOR UPDATE SKIP LOCKED", nativeQuery = true) // ensure locking row, and skip any that are locked already
-    public GeneratedReportEntity findReportRequestsToEnqueue();
-
-    @Query(value = " SELECT *, CASE  d.downloadable  WHEN true THEN 1 END as priority " + // downloadable reports have higher priority (they are essentially streamed reports for UI)
-            " FROM _reports.generated_report r " + //
-            " JOIN _reports.destination d ON r.destination_id = d.destination_id " + // destinations gives us priority
-            " WHERE cast(report_status AS varchar) = 'PENDING' " + //
-            " ORDER BY priority, retry_count DESC, requested_at ASC " + " LIMIT 200 FOR UPDATE SKIP LOCKED", nativeQuery = true) // ensure locking row, and skip any that are locked already
-    public List<GeneratedReportEntity> findReportRequestsToEnqueueGroups();
-
     @Query(value = " WITH jobs AS ( " + //
             "       SELECT correlation_id " + //
             "         FROM _reports.generated_report r " + //
@@ -54,21 +42,7 @@ public interface GeneratedReportEntityRepository extends JpaRepository<Generated
             "   FROM   jobs " + //
             "   WHERE  r.correlation_id = jobs.correlation_id " + //
             "   RETURNING CAST(r.correlation_id AS VARCHAR) ", nativeQuery = true)
-    public List<String> findReportRequestsToEnqueueS();
-
-    @Query(value = " WITH jobs AS ( " + //
-            "       SELECT correlation_id " + //
-            "         FROM _reports.generated_report r " + //
-            "         JOIN _reports.destination d ON r.destination_id = d.destination_id " + //
-            "       WHERE cast(report_status AS varchar) = 'PENDING'  " + //
-            "       ORDER BY CASE d.downloadable WHEN true THEN 1 END, retry_count DESC, requested_at ASC LIMIT 1 FOR UPDATE SKIP LOCKED " + //
-            "   ) " + //
-            "   UPDATE  _reports.generated_report r " + //
-            "   SET    report_status = 'STARTED' " + //
-            "   FROM   jobs " + //
-            "   WHERE  r.correlation_id = jobs.correlation_id " + //
-            "   RETURNING CAST(r.correlation_id AS VARCHAR) ", nativeQuery = true)
-    public String findReportRequestsToEnqueueViaUpdateSet();
+    public List<String> findReportRequestsCorrelationIdsEnqueue();
 
     /**
      * Finds GenerateReportEntity(report_request)'s that are in 'FAILED' status for more than x milliseconds: Ordered By Priority, RetryCount, Requested date. <br/>

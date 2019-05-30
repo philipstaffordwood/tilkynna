@@ -27,13 +27,10 @@ public class GenerateReportQueueScheduler {
     private GeneratedReportEntityRepository generatedReportEntityRepository;
 
     @Autowired
-    private GenerateReportQueueHandler generateReportQueueHandler;
-
-    @Autowired
     private GenerateReportRetryPolicyImpl generateReportRetryPolicy;
 
     @Autowired
-    private AsyncTask asyncTask; // https://stackoverflow.com/questions/48233445/spring-boot-scheduled-not-running-in-different-threads
+    private GenerateReportAcquisitionThread asyncTask; // https://stackoverflow.com/questions/48233445/spring-boot-scheduled-not-running-in-different-threads
 
     /**
      * Runs enqueued generate report requests <br/>

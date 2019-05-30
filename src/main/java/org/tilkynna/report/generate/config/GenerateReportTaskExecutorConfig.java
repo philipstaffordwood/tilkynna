@@ -21,10 +21,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  */
 @Configuration
 @EnableAsync
-public class GenerateReportTaskExecutorConfig /* implements AsyncConfigurer */ {
-
-    // Override the Executor at the Method Level and not at 'Override the Executor at the Application Level'
-    // so that I can configure differently
+public class GenerateReportTaskExecutorConfig {
 
     @Value("${tilkynna.generate.threading.poolSize}")
     int poolSize;
@@ -35,31 +32,14 @@ public class GenerateReportTaskExecutorConfig /* implements AsyncConfigurer */ {
     @Value("${tilkynna.generate.threading.queueCapacity}")
     int queueCapacity;
 
-    @Bean(name = "generateReportTaskExecutor1")
-    public Executor getAsyncExecutor1() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setThreadPriority(Thread.MIN_PRIORITY); //
-        executor.setThreadNamePrefix("GenReportAquisition-");
-        executor.setCorePoolSize(2);
-        executor.setMaxPoolSize(4);
-        // executor.setMaxPoolSize(Integer.MAX_VALUE);
-        // executor.setQueueCapacity(queueCapacity);
-        executor.setQueueCapacity(20);
-        executor.initialize();
-
-        return executor;
-    }
-
     @Bean(name = "generateReportTaskExecutor")
     public Executor getAsyncExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setThreadPriority(Thread.MIN_PRIORITY);
-        executor.setThreadNamePrefix("GenReportProcessEngine-");
+        executor.setThreadNamePrefix("GenReportEngine-");
         executor.setCorePoolSize(poolSize);
         executor.setMaxPoolSize(maxPoolSize);
-        // executor.setMaxPoolSize(Integer.MAX_VALUE);
         executor.setQueueCapacity(queueCapacity);
-        // executor.setQueueCapacity(Integer.MAX_VALUE);
         executor.initialize();
 
         return executor;
