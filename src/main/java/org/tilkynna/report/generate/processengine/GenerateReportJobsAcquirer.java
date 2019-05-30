@@ -37,7 +37,7 @@ public class GenerateReportJobsAcquirer {
     private Executor generateReportExecutor;
 
     public void getPendingJobsAndPushToGenerateReportThreadPool() {
-        log.info("getPendingJobsAndPushToGenerateReportThreadPool START: {}", Thread.currentThread().getName());
+        log.debug("getPendingJobsAndPushToGenerateReportThreadPool START: {}", Thread.currentThread().getName());
 
         ThreadPoolExecutor generateReportThreadPool = ((ThreadPoolTaskExecutor) generateReportExecutor).getThreadPoolExecutor();
         // TODO check generateReportTaskExecutor.size if and x % then don't try start any more new tasks
@@ -50,17 +50,17 @@ public class GenerateReportJobsAcquirer {
                 String correlationIdStr = iterator.next();
                 UUID correlationId = UUID.fromString(correlationIdStr);
 
-                log.info(String.format("generateReportTaskExecutor.size [%s]", generateReportThreadPool.getQueue().size()));
+                log.debug(String.format("generateReportTaskExecutor.size [%s]", generateReportThreadPool.getQueue().size()));
 
-                log.info(String.format("Start picked up by scheduler correlationId [%s] on Thread [%s]", correlationId, Thread.currentThread().getName()));
+                log.debug(String.format("Start picked up by scheduler correlationId [%s] on Thread [%s]", correlationId, Thread.currentThread().getName()));
                 generateReportHandler.pushGenerateReportToThreadPoolForProcessing(correlationId);
-                log.info(String.format("End picked up by scheduler correlationId [%s] on Thread [%s]", correlationId, Thread.currentThread().getName()));
+                log.debug(String.format("End picked up by scheduler correlationId [%s] on Thread [%s]", correlationId, Thread.currentThread().getName()));
 
             }
 
             generatedReportRepository.flush();
         }
 
-        log.info("getPendingJobsAndPushToGenerateReportThreadPool END: {}", Thread.currentThread().getName());
+        log.debug("getPendingJobsAndPushToGenerateReportThreadPool END: {}", Thread.currentThread().getName());
     }
 }

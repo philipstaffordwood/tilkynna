@@ -58,7 +58,7 @@ public class GenerateReportHandler {
     @Async("generateReportThreadPoolExecutor")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void pushGenerateReportToThreadPoolForProcessing(UUID correlationId) {
-        log.info(String.format("Report picked up by GenerateReportQueueHandler correlationId [%s] on Thread [%s]", correlationId, Thread.currentThread().getName()));
+        log.debug(String.format("Report picked up by GenerateReportQueueHandler correlationId [%s] on Thread [%s]", correlationId, Thread.currentThread().getName()));
 
         GeneratedReportEntity generatedReportEntity = generatedReportEntityRepository.findById(correlationId) //
                 .orElseThrow(() -> new ResourceNotFoundExceptions.GeneratedReportEntity(correlationId.toString()));
@@ -73,7 +73,7 @@ public class GenerateReportHandler {
             // TODO call the callback URL
 
         } catch (IOException | ParseException | BirtException | ReportDatasourceExceptionException | TemplateHasInactiveDatasourcesException knownException) {
-            log.info(String.format("knownException Generating Report correlationId [%s] on Thread [%s]", generatedReportEntity.getCorrelationId(), Thread.currentThread().getName()));
+            log.error(String.format("knownException Generating Report correlationId [%s] on Thread [%s]", generatedReportEntity.getCorrelationId(), Thread.currentThread().getName()));
             log.error("knownException: {}", knownException.getMessage());
 
             generatedReportEntity.setReportStatus(ReportStatusEntity.FAILED);
@@ -81,41 +81,41 @@ public class GenerateReportHandler {
         } catch (MessageHandlingException e) { // TODO can I handle connection failures to destination in a cleaner way?
             // JSchException ..
             // ((org.springframework.messaging.MessageHandlingException)unknownException).getMostSpecificCause()
-            log.info(String.format("knownException MessageHandlingException Generating Report correlationId [%s] on Thread [%s]", generatedReportEntity.getCorrelationId(), Thread.currentThread().getName()));
+            log.error(String.format("knownException MessageHandlingException Generating Report correlationId [%s] on Thread [%s]", generatedReportEntity.getCorrelationId(), Thread.currentThread().getName()));
             log.error("knownException MessageHandlingException: {}", e.getMessage());
 
             generatedReportEntity.setReportStatus(ReportStatusEntity.FAILED);
         } catch (Exception unknownException) {
-            log.info(String.format("unknownException Generating Report correlationId [%s] on Thread [%s]", generatedReportEntity.getCorrelationId(), Thread.currentThread().getName()));
+            log.error(String.format("unknownException Generating Report correlationId [%s] on Thread [%s]", generatedReportEntity.getCorrelationId(), Thread.currentThread().getName()));
             log.error("unknownException: {}", unknownException.getMessage());
 
             generatedReportEntity.setReportStatus(ReportStatusEntity.FAILED);
         }
 
-        log.info(String.format("start update status for ReportEntity correlationId [%s] on Thread [%s]", correlationId, Thread.currentThread().getName()));
+        log.debug(String.format("start update status for ReportEntity correlationId [%s] on Thread [%s]", correlationId, Thread.currentThread().getName()));
         generatedReportEntityRepository.save(generatedReportEntity);
-        log.info(String.format("end update status for ReportEntity correlationId [%s] on Thread [%s]", correlationId, Thread.currentThread().getName()));
+        log.debug(String.format("end update status for ReportEntity correlationId [%s] on Thread [%s]", correlationId, Thread.currentThread().getName()));
     }
 
     private void writeReportToDestination(GeneratedReportEntity reportRequest, DestinationEntity destinationEntity, byte[] generatedReport) throws IOException {
-        log.info(String.format("Generating Report start writing to destination correlationId [%s] on Thread [%s]", reportRequest.getCorrelationId(), Thread.currentThread().getName()));
+        log.debug(String.format("Generating Report start writing to destination correlationId [%s] on Thread [%s]", reportRequest.getCorrelationId(), Thread.currentThread().getName()));
         DestinationProvider destinationProvider = destinationProviderFactory.get(destinationEntity.getType());
         destinationProvider.write(reportRequest, generatedReport);
-        log.info(String.format("Generating Report end writing to destination correlationId [%s] on Thread [%s]", reportRequest.getCorrelationId(), Thread.currentThread().getName()));
+        log.debug(String.format("Generating Report end writing to destination correlationId [%s] on Thread [%s]", reportRequest.getCorrelationId(), Thread.currentThread().getName()));
     }
 
     private byte[] generateReport(GeneratedReportEntity generatedReportEntity) throws IOException, JsonParseException, JsonMappingException, ParseException, BirtException {
-        log.info(String.format("Generating Report start generating report correlationId [%s] on Thread [%s]", generatedReportEntity.getCorrelationId(), Thread.currentThread().getName()));
+        log.debug(String.format("Generating Report start generating report correlationId [%s] on Thread [%s]", generatedReportEntity.getCorrelationId(), Thread.currentThread().getName()));
         TemplateGenerateRemoteRequestBase templateGenerateRemoteRequestBase = objectMapper.readValue(generatedReportEntity.getRequestBody(), TemplateGenerateRemoteRequestBase.class);
         byte[] generatedReport = generateReportService.generateReport(generatedReportEntity.getTemplate().getId(), templateGenerateRemoteRequestBase);
-        log.info(String.format("Generating Report end generating report correlationId [%s] on Thread [%s]", generatedReportEntity.getCorrelationId(), Thread.currentThread().getName()));
+        log.debug(String.format("Generating Report end generating report correlationId [%s] on Thread [%s]", generatedReportEntity.getCorrelationId(), Thread.currentThread().getName()));
 
         return generatedReport;
     }
 
     // validate request again in case changes have been made since original request
     private void validateGenerateReportRequest(GeneratedReportEntity generatedReportEntity) {
-        log.info(String.format("Validating Generating Report correlationId [%s] on Thread [%s]", generatedReportEntity.getCorrelationId(), Thread.currentThread().getName()));
+        log.debug(String.format("Validating Generating Report correlationId [%s] on Thread [%s]", generatedReportEntity.getCorrelationId(), Thread.currentThread().getName()));
         TemplateEntity templateEntity = generatedReportEntity.getTemplate();
         DestinationEntity destinationEntity = generatedReportEntity.getDestination();
         if (templateEntity.hasInActiveDatasources()) {

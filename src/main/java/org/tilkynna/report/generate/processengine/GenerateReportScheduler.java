@@ -47,7 +47,6 @@ public class GenerateReportScheduler {
     @Scheduled(fixedRateString = "${tilkynna.generate.monitorPendingRequests.fixedRateInMilliseconds}", //
             initialDelayString = "${tilkynna.generate.monitorPendingRequests.initialDelayInMilliseconds}")
     public void acquireGenerateReportJobsInPendingStatus() {
-        log.info("scanGenerateReportRequests START debug 1: {}", Thread.currentThread().getName());
         generateReportJobsAcquirer.getPendingJobsAndPushToGenerateReportThreadPool();
     }
 
