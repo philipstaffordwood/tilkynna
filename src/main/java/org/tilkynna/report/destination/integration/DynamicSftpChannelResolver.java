@@ -21,6 +21,7 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -31,15 +32,10 @@ public class DynamicSftpChannelResolver {
 
     @Setter
     @Getter
+    @AllArgsConstructor
     public class Channel {
         private MessageChannel messageChannel;
         private ZonedDateTime updatedOn;
-
-        public Channel(MessageChannel messageChannel, ZonedDateTime updatedOn) {
-            this.messageChannel = messageChannel;
-            this.updatedOn = updatedOn;
-        }
-
     }
 
     private final LinkedHashMap<UUID, Channel> channels = new LinkedHashMap<>();
