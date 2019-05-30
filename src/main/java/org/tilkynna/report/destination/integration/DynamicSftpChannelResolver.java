@@ -7,9 +7,10 @@
 package org.tilkynna.report.destination.integration;
 
 import java.time.ZonedDateTime;
-import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.env.PropertiesPropertySource;
@@ -33,12 +34,12 @@ public class DynamicSftpChannelResolver {
     @Setter
     @Getter
     @AllArgsConstructor
-    public class Channel {
+    public static class Channel {
         private MessageChannel messageChannel;
         private ZonedDateTime updatedOn;
     }
 
-    private final LinkedHashMap<UUID, Channel> channels = new LinkedHashMap<>();
+    private final Map<UUID, Channel> channels = new ConcurrentHashMap<>();
 
     /**
      * Resolve destination to a channel, where each destination gets a private application context and the channel is the inbound channel to that application context.
@@ -52,18 +53,27 @@ public class DynamicSftpChannelResolver {
     }
 
     @SuppressWarnings("resource")
-    private synchronized Channel createOrUpdateDestinationChannel(SFTPConfigSettings destination) {
+    private Channel createOrUpdateDestinationChannel(SFTPConfigSettings destination) {
         // Check if the SFTP settings have been changed since context for channel was setup, if yes new need to reload it
         Channel channel = this.channels.get(destination.getDestinationId());
-        if (channel == null || destination.getUpdatedOn().isAfter(channel.getUpdatedOn())) {
-            ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(new String[] { "classpath:dynamic-sftp-outbound-adapter-context.xml" }, false);
-            ctx.getEnvironment().getPropertySources().addFirst(getPropertySource(destination));
-            ctx.refresh();
 
-            MessageChannel messageChannel = ctx.getBean("toSftpChannel", MessageChannel.class);
-            channel = new Channel(messageChannel, destination.getUpdatedOn());
+        // double-null-check with a synchronized on the second check will be more performant as you'll not be blocking threads.
+        boolean needsUpdate = (channel == null) || destination.getUpdatedOn().isAfter(channel.getUpdatedOn());
+        if (needsUpdate) {
+            synchronized (this.channels) { // Only blocking threads when you actually need to really update.
+                needsUpdate = (channel == null) || destination.getUpdatedOn().isAfter(channel.getUpdatedOn());
+                if (needsUpdate) {
+                    ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(new String[] { "classpath:dynamic-sftp-outbound-adapter-context.xml" }, false);
+                    ctx.getEnvironment().getPropertySources().addFirst(getPropertySource(destination));
+                    ctx.refresh();
 
-            this.channels.put(destination.getDestinationId(), channel);
+                    MessageChannel messageChannel = ctx.getBean("toSftpChannel", MessageChannel.class);
+                    channel = new Channel(messageChannel, destination.getUpdatedOn());
+
+                    this.channels.put(destination.getDestinationId(), channel);
+                }
+            }
+
         }
 
         return channel;
