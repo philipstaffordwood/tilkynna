@@ -14,6 +14,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,29 +37,33 @@ public class GenerateReportJobsAcquirer {
     @Qualifier("generateReportThreadPoolExecutor")
     private Executor generateReportExecutor;
 
+    @Value("${tilkynna.generate.threading.batchSize}")
+    private int batchSize;
+
     public void getPendingJobsAndPushToGenerateReportThreadPool() {
         log.debug("getPendingJobsAndPushToGenerateReportThreadPool START: {}", Thread.currentThread().getName());
 
         ThreadPoolExecutor generateReportThreadPool = ((ThreadPoolTaskExecutor) generateReportExecutor).getThreadPoolExecutor();
-        // TODO check generateReportTaskExecutor.size if and x % then don't try start any more new tasks
-        List<String> correlationIds = generatedReportRepository.getBatchOfPendingGenerateReportJobs();
 
-        boolean correlationIdsExist = correlationIds != null && correlationIds.size() > 1;
-        if (correlationIdsExist) {
+        if (batchSize < generateReportThreadPool.getQueue().remainingCapacity()) {
+            List<String> correlationIds = generatedReportRepository.getBatchOfPendingGenerateReportJobs();
+            boolean correlationIdsExist = correlationIds != null && correlationIds.size() > 1;
+            if (correlationIdsExist) {
 
-            for (Iterator<String> iterator = correlationIds.iterator(); iterator.hasNext();) {
-                String correlationIdStr = iterator.next();
-                UUID correlationId = UUID.fromString(correlationIdStr);
+                for (Iterator<String> iterator = correlationIds.iterator(); iterator.hasNext();) {
+                    String correlationIdStr = iterator.next();
+                    UUID correlationId = UUID.fromString(correlationIdStr);
 
-                log.debug(String.format("generateReportTaskExecutor.size [%s]", generateReportThreadPool.getQueue().size()));
+                    log.debug(String.format("generateReportTaskExecutor.size [%s]", generateReportThreadPool.getQueue().size()));
 
-                log.debug(String.format("Start picked up by scheduler correlationId [%s] on Thread [%s]", correlationId, Thread.currentThread().getName()));
-                generateReportHandler.pushGenerateReportToThreadPoolForProcessing(correlationId);
-                log.debug(String.format("End picked up by scheduler correlationId [%s] on Thread [%s]", correlationId, Thread.currentThread().getName()));
+                    log.debug(String.format("Start picked up by scheduler correlationId [%s] on Thread [%s]", correlationId, Thread.currentThread().getName()));
+                    generateReportHandler.pushGenerateReportToThreadPoolForProcessing(correlationId);
+                    log.debug(String.format("End picked up by scheduler correlationId [%s] on Thread [%s]", correlationId, Thread.currentThread().getName()));
 
+                }
+
+                generatedReportRepository.flush();
             }
-
-            generatedReportRepository.flush();
         }
 
         log.debug("getPendingJobsAndPushToGenerateReportThreadPool END: {}", Thread.currentThread().getName());
