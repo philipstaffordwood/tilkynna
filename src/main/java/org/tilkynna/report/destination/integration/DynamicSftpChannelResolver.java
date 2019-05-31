@@ -61,6 +61,7 @@ public class DynamicSftpChannelResolver {
         boolean needsUpdate = (channel == null) || destination.getUpdatedOn().isAfter(channel.getUpdatedOn());
         if (needsUpdate) {
             synchronized (this.channels) { // Only blocking threads when you actually need to really update.
+                channel = this.channels.get(destination.getDestinationId());
                 needsUpdate = (channel == null) || destination.getUpdatedOn().isAfter(channel.getUpdatedOn());
                 if (needsUpdate) {
                     ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(new String[] { "classpath:dynamic-sftp-outbound-adapter-context.xml" }, false);
