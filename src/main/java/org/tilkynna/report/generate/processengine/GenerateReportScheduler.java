@@ -4,7 +4,7 @@
  * License MIT: https://opensource.org/licenses/MIT
  * **************************************************
  */
-package org.tilkynna.report.generate;
+package org.tilkynna.report.generate.processengine;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -21,19 +21,21 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Transactional
 @Component
-public class GenerateReportQueueScheduler {
+public class GenerateReportScheduler {
 
     @Autowired
     private GeneratedReportEntityRepository generatedReportEntityRepository;
 
     @Autowired
-    private GenerateReportQueueHandler generateReportQueueHandler;
-
-    @Autowired
     private GenerateReportRetryPolicyImpl generateReportRetryPolicy;
 
+    @Autowired
+    private GenerateReportJobsAcquirer generateReportJobsAcquirer; // https://stackoverflow.com/questions/48233445/spring-boot-scheduled-not-running-in-different-threads
+
     /**
-     * Runs enqueued generate report requests <br/>
+     * Retrieves jobs from the database (generated_report table) that <br/>
+     * will be pushed onto the GenerateReportThreadPoolQueue for executed next.<br/>
+     * 
      * Scheduler execution doesn’t wait for the completion of the previous execution. <br/>
      * Starts on a new run every fixedRateString milliseconds (as each run is on its own thread & don't interact with each other)
      * 
@@ -41,24 +43,11 @@ public class GenerateReportQueueScheduler {
      * Call .. generateReportQueueHandler.generateReport(reportRequest); asynchronously so that we can <br/>
      * update status to STARTED in this transaction and commit for others to see. <br/>
      */
+    // https://stackoverflow.com/questions/48233445/spring-boot-scheduled-not-running-in-different-threads
     @Scheduled(fixedRateString = "${tilkynna.generate.monitorPendingRequests.fixedRateInMilliseconds}", //
             initialDelayString = "${tilkynna.generate.monitorPendingRequests.initialDelayInMilliseconds}")
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void scanGenerateReportRequests() {
-        log.debug("scanGenerateReportRequests START debug: {}", Thread.currentThread().getName());
-
-        GeneratedReportEntity reportRequest = generatedReportEntityRepository.findReportRequestsToEnqueue();
-        log.debug("scanGenerateReportRequests reportRequests: " + reportRequest);
-
-        if (reportRequest != null) {
-            generateReportQueueHandler.generateReportAsync(reportRequest);
-
-            reportRequest.setRetryCount(generateReportRetryPolicy.calculateRetryCount(reportRequest.getRetryCount()));
-            reportRequest.setReportStatus(ReportStatusEntity.STARTED);
-            generatedReportEntityRepository.save(reportRequest);
-        }
-
-        log.debug("scanGenerateReportRequests END: {}", Thread.currentThread().getName());
+    public void acquireGenerateReportJobsInPendingStatus() {
+        generateReportJobsAcquirer.getPendingJobsAndPushToGenerateReportThreadPool();
     }
 
     /**

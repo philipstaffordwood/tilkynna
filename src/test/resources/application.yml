@@ -1,10 +1,13 @@
 tilkynna:
+  scheduler:  
+    poolSize: 4
   templates:
     storage: FileSystemContentRepository
     location: tmp/templates
   generate: 
     hostname: http://localhost:9981
     threading:
+      batchSize: 30
       poolSize: 15
       maxPoolSize: 300
       queueCapacity: 1000

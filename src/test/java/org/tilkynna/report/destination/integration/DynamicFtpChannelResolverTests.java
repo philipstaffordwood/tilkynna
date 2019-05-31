@@ -9,6 +9,9 @@ package org.tilkynna.report.destination.integration;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 
+import java.time.ZonedDateTime;
+import java.util.UUID;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.messaging.MessageChannel;
@@ -31,6 +34,8 @@ public class DynamicFtpChannelResolverTests {
 
     private SFTPConfigSettings extractSftpConfig(SFTPDestinationEntity sftp) {
         SFTPConfigSettings sftpConfig = new SFTPConfigSettings();
+        sftpConfig.setDestinationId(sftp.getDestinationId());
+        sftpConfig.setUpdatedOn(sftp.getUpdatedOn());
         sftpConfig.setHost(sftp.getHost());
         sftpConfig.setPort(sftp.getPort());
         sftpConfig.setUsername(sftp.getUsername());
@@ -40,23 +45,29 @@ public class DynamicFtpChannelResolverTests {
     }
 
     /**
-     * Test method for {@link org.tilkynna.report.destination.integration.DynamicFtpChannelResolver#resolve(SFTPDestinationEntity)}.
+     * Test method for {@link org.tilkynna.report.destination.integration.DynamicSftpChannelResolver#resolve(SFTPDestinationEntity)}.
      */
     @Test
     public void testResolve() {
         SFTPDestinationEntity sftp1 = SFTPDestinationMockDataGenerator.setupSFTPDestinationEntity("SFTP_1");
+        sftp1.setUpdatedOn(ZonedDateTime.now());
+        sftp1.setDestinationId(UUID.randomUUID());
         SFTPConfigSettings sftpConfig1 = extractSftpConfig(sftp1);
+
         SFTPDestinationEntity sftp2 = SFTPDestinationMockDataGenerator.setupSFTPDestinationEntity("SFTP_2");
+        sftp2.setUpdatedOn(ZonedDateTime.now());
+        sftp2.setDestinationId(UUID.randomUUID());
+        sftp2.setHost("google.com");
         SFTPConfigSettings sftpConfig2 = extractSftpConfig(sftp2);
 
-        DynamicFtpChannelResolver dynamicFtpChannelResolver = new DynamicFtpChannelResolver();
+        DynamicSftpChannelResolver dynamicFtpChannelResolver = new DynamicSftpChannelResolver();
 
         MessageChannel channel1 = dynamicFtpChannelResolver.resolve(sftpConfig1);
         assertNotNull(channel1);
         MessageChannel channel2 = dynamicFtpChannelResolver.resolve(sftpConfig2);
         assertNotNull(channel2);
 
-        assertNotSame("assertNotSame: ", channel1, channel2);
+        assertNotSame("channel1 and channel2 should not be the same: ", channel1, channel2);
 
     }
 }

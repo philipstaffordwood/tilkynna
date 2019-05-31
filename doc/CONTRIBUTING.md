@@ -144,7 +144,6 @@ SSH onto the docker container using:
 then run  
 	`PGPASSWORD=postgres createdb -h localhost -p 5432 -U postgres tilkynna`
 
-
 ### Running Tilkynna using Docker
 Using IP or your Postgres instance above for <IP_ADDRESS>
 

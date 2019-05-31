@@ -103,10 +103,16 @@ CREATE TABLE _reports.destination (
 	timeout bigint DEFAULT 5000,
 	is_active boolean DEFAULT false,
 	downloadable boolean NOT NULL,
+	__updated_on timestamptz NOT NULL,
+	__updated_by uuid NOT NULL,
 	CONSTRAINT pk_destination PRIMARY KEY (destination_id),
 	CONSTRAINT un_destination_name UNIQUE (name)
 
 );
+-- ddl-end --
+COMMENT ON COLUMN _reports.destination.__updated_on IS 'timestamptz when destination was last updated (changed) ';
+-- ddl-end --
+COMMENT ON COLUMN _reports.destination.__updated_by IS 'UUID of the user that last updated this destination at the __updated_on time. ';
 -- ddl-end --
 ALTER TABLE _reports.destination OWNER TO postgres;
 -- ddl-end --

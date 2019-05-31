@@ -1,21 +1,26 @@
+#https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
 tilkynna:
+  scheduler:  
+    poolSize: 4
   templates:
     storage: FileSystemContentRepository
     location: tmp/templates
   generate: 
     hostname: http://localhost:9981
     threading:
-      poolSize: 15
-      maxPoolSize: 300
-      queueCapacity: 1000
+      batchSize: 30
+      poolSize: 30
+      maxPoolSize: 50
+      queueCapacity: 100
     monitorPendingRequests: #config for monitoring PENDING report requests and publishing them to be processed 
-      fixedRateInMilliseconds: 1000
+      #1000ms = 1second
+      fixedRateInMilliseconds: 1 # make this like 100 ms
       initialDelayInMilliseconds: 5000
     monitorFailedRequests: #config for monitoring FAILED report requests and re enqueing them
-      fixedRateInMilliseconds: 1000
+      fixedRateInMilliseconds: 5000
       initialDelayInMilliseconds: 5000
     monitorStalledRequests: 
-      fixedRateInMilliseconds: 1000
+      fixedRateInMilliseconds: 5000
       initialDelayInMilliseconds: 5000
     retry: 
       maxAttempts: 3
@@ -26,6 +31,10 @@ tilkynna:
 
 server:
   port: 9981
+  # EMBEDDED SERVER CONFIGURATION
+#  tomcat:
+#    maxThreads: 400 # Maximum amount of worker threads.
+#    minSpareThreads: 20 # Minimum amount of worker threads.
 spring:
   datasource:
     initialization-mode: always
@@ -83,7 +92,8 @@ logging:
   level:    
     root: INFO
     org.springframework.security: ERROR
-    org.tilkynna: DEBUG
+    org.tilkynna: INFO
+    com.jcraft.jsch: ERROR
     org.tilkynna.report.generate: INFO
     #org.springframework.orm.jpa: DEBUG      
     #org.springframework.transaction: DEBUG

@@ -24,13 +24,12 @@ public class SMTPDestinationMockDataGenerator {
         destination.setActive(true);
         destination.setName(destinationName);
         destination.setDescription("description");
-        destination.setTimeout(new Long(
-                56322));
+        destination.setTimeout(new Long(56322));
         destination.setSecurityProtocol("securityProtocol");
+        destination.setUpdatedBy(UUID.randomUUID());
 
         destination.setHost("SMTP://localhost:5432");
-        destination.setPort(new Long(
-                23).shortValue());
+        destination.setPort(new Long(23).shortValue());
         destination.setUsername("username");
         destination.setPassword("password".getBytes());
         destination.setFromAddress("from_addres@here.com");

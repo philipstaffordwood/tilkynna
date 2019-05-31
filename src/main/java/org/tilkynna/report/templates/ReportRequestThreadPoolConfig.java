@@ -4,7 +4,7 @@
  * License MIT: https://opensource.org/licenses/MIT
  * **************************************************
  */
-package org.tilkynna.report.generate.config;
+package org.tilkynna.report.templates;
 
 import java.util.concurrent.Executor;
 
@@ -23,9 +23,8 @@ public class ReportRequestThreadPoolConfig {
 
         ThreadPoolTaskExecutor threadPoolTaskScheduler = new ThreadPoolTaskExecutor();
 
-        threadPoolTaskScheduler.setCorePoolSize(1000);
         threadPoolTaskScheduler.setThreadPriority(Thread.MAX_PRIORITY);
-        threadPoolTaskScheduler.setThreadNamePrefix("ReportReq-");
+        threadPoolTaskScheduler.setThreadNamePrefix("GenReportRequest-");
         threadPoolTaskScheduler.initialize();
         return threadPoolTaskScheduler;
     }

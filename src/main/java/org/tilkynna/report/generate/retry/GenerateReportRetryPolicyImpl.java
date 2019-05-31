@@ -8,7 +8,7 @@ package org.tilkynna.report.generate.retry;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.tilkynna.report.generate.config.GenerateReportRetryPolicyConfig;
+import org.tilkynna.report.generate.processengine.config.GenerateReportRetryPolicyConfig;
 
 @Component
 public class GenerateReportRetryPolicyImpl implements RetryPolicy {

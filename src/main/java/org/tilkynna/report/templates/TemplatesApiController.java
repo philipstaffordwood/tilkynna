@@ -95,7 +95,7 @@ public class TemplatesApiController implements TemplatesApi {
 
         try {
             ReportStatus reportStatusResponse = reportStatus.get();
-            log.info(String.format("GenerateRemoteRequest correlationId [%s] for templateId [%s] with request data: %s", //
+            log.debug(String.format("GenerateRemoteRequest correlationId [%s] for templateId [%s] with request data: %s", //
                     reportStatusResponse.getCorrelationId(), templateId.toString(), templateGenerateRemoteRequestBase.toString()));
 
             return new ResponseEntity<>(reportStatusResponse, HttpStatus.CREATED); // to another thread BUT sync cause we need to respond to user with correlationId

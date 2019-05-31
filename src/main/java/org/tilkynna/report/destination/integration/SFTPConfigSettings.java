@@ -6,13 +6,16 @@
  */
 package org.tilkynna.report.destination.integration;
 
-import lombok.Getter;
-import lombok.Setter;
+import java.time.ZonedDateTime;
+import java.util.UUID;
 
-@Setter
-@Getter
+import lombok.Data;
+
+@Data
 public class SFTPConfigSettings {
 
+    private UUID destinationId;
+    private ZonedDateTime updatedOn;
     private String host;
     private Short port;
     private String username;
