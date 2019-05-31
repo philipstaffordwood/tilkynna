@@ -8,6 +8,7 @@ tilkynna:
   generate: 
     hostname: http://localhost:9981
     threading:
+      batchSize: 30
       poolSize: 30
       maxPoolSize: 50
       queueCapacity: 100
