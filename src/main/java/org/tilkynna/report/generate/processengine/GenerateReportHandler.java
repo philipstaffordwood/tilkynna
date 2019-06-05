@@ -21,13 +21,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.tilkynna.common.error.CustomValidationExceptions;
 import org.tilkynna.common.error.CustomValidationExceptions.TemplateHasInactiveDatasourcesException;
 import org.tilkynna.common.error.ResourceNotFoundExceptions;
-import org.tilkynna.report.destination.model.dao.DestinationEntityRepository;
+import org.tilkynna.common.utils.ApplicationInstance;
 import org.tilkynna.report.destination.model.db.DestinationEntity;
 import org.tilkynna.report.destination.provider.DestinationProvider;
 import org.tilkynna.report.destination.provider.DestinationProviderFactory;
-import org.tilkynna.report.generate.GenerateReportExceptions;
-import org.tilkynna.report.generate.GenerateReportService;
 import org.tilkynna.report.generate.GenerateReportExceptions.ReportDatasourceExceptionException;
+import org.tilkynna.report.generate.GenerateReportService;
 import org.tilkynna.report.generate.model.db.GeneratedReportEntity;
 import org.tilkynna.report.generate.model.db.GeneratedReportEntityRepository;
 import org.tilkynna.report.generate.model.db.ReportStatusEntity;
@@ -93,6 +92,7 @@ public class GenerateReportHandler {
         }
 
         log.debug(String.format("start update status for ReportEntity correlationId [%s] on Thread [%s]", correlationId, Thread.currentThread().getName()));
+        generatedReportEntity.setProccesedBy(String.format("Instance [%s] on Thread [%s]", ApplicationInstance.name(), Thread.currentThread().getName()));
         generatedReportEntityRepository.save(generatedReportEntity);
         log.debug(String.format("end update status for ReportEntity correlationId [%s] on Thread [%s]", correlationId, Thread.currentThread().getName()));
     }
