@@ -47,7 +47,7 @@ public class GenerateReportJobsAcquirer {
 
         if (batchSize < generateReportThreadPool.getQueue().remainingCapacity()) {
             List<String> correlationIds = generatedReportRepository.getBatchOfPendingGenerateReportJobs();
-            boolean correlationIdsExist = correlationIds != null && correlationIds.size() > 1;
+            boolean correlationIdsExist = correlationIds != null && correlationIds.size() >= 1;
             if (correlationIdsExist) {
 
                 for (Iterator<String> iterator = correlationIds.iterator(); iterator.hasNext();) {
