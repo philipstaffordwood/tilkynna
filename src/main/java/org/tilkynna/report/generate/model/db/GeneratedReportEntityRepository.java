@@ -36,7 +36,7 @@ public interface GeneratedReportEntityRepository extends JpaRepository<Generated
             "         FROM _reports.generated_report r " + //
             "         JOIN _reports.destination d ON r.destination_id = d.destination_id " + //
             "       WHERE cast(report_status AS varchar) = 'PENDING'  " + //
-            "       ORDER BY CASE d.downloadable WHEN true THEN 1 END, retry_count DESC, requested_at ASC LIMIT 30 FOR UPDATE SKIP LOCKED " + //
+            "       ORDER BY CASE d.downloadable WHEN true THEN 1 END, retry_count DESC, requested_at ASC LIMIT 16 FOR UPDATE SKIP LOCKED " + // TODO config out batchSize
             "   ) " + //
             "   UPDATE  _reports.generated_report r " + //
             "   SET    report_status = 'STARTED' " + //
