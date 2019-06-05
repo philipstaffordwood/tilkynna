@@ -24,8 +24,8 @@ public class SchedulerConfig implements SchedulingConfigurer {
     /**
      * The pool size.
      */
-	@Value("${tilkynna.scheduler.poolSize}")
-    private static final int POOL_SIZE = 4;
+    @Value("${tilkynna.scheduler.poolSize}")
+    private final int POOL_SIZE = 4;
 
     /**
      * Configures the scheduler to allow multiple pools.
