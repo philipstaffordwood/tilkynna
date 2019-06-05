@@ -36,14 +36,14 @@ public interface GeneratedReportEntityRepository extends JpaRepository<Generated
             "         FROM _reports.generated_report r " + //
             "         JOIN _reports.destination d ON r.destination_id = d.destination_id " + //
             "       WHERE cast(report_status AS varchar) = 'PENDING'  " + //
-            "       ORDER BY CASE d.downloadable WHEN true THEN 1 END, retry_count DESC, requested_at ASC LIMIT 16 FOR UPDATE SKIP LOCKED " + // TODO config out batchSize
+            "       ORDER BY CASE d.downloadable WHEN true THEN 1 END, retry_count DESC, requested_at ASC LIMIT :batchSize FOR UPDATE SKIP LOCKED " + //
             "   ) " + //
             "   UPDATE  _reports.generated_report r " + //
             "   SET    report_status = 'STARTED' " + //
             "   FROM   jobs " + //
             "   WHERE  r.correlation_id = jobs.correlation_id " + //
             "   RETURNING CAST(r.correlation_id AS VARCHAR) ", nativeQuery = true)
-    public List<String> getBatchOfPendingGenerateReportJobs();
+    public List<String> getBatchOfPendingGenerateReportJobs(@Param("batchSize") int batchSize);
 
     /**
      * Finds GenerateReportEntity(report_request)'s that are in 'FAILED' status for more than x milliseconds: Ordered By Priority, RetryCount, Requested date. <br/>
