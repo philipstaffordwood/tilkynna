@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.2-alpha1" last-position="0,239" last-zoom="1" max-obj-count="20"
+<dbmodel pgmodeler-ver="0.9.2-alpha1" last-position="0,64" last-zoom="1" max-obj-count="20"
 	 default-owner="postgres">
 <database name="tilkynna" encoding="UTF8" is-template="false" allow-conns="true">
 	<role name="postgres"/>
@@ -384,7 +384,7 @@ FINISHED_REMOTE: processing for generating the report to any destination other t
 		</idxelement>
 </index>
 
-<table name="generated_report" layer="0" collapse-mode="2" max-obj-count="12">
+<table name="generated_report" layer="0" collapse-mode="2" max-obj-count="13">
 	<schema name="_reports"/>
 	<role name="postgres"/>
 	<position x="960" y="260"/>
@@ -420,6 +420,10 @@ FINISHED_REMOTE: processing for generating the report to any destination other t
 	<column name="retry_count" default-value="0">
 		<type name="smallint" length="0"/>
 		<comment><![CDATA[Number of times left to rety upon failure ]]></comment>
+	</column>
+	<column name="processed_by">
+		<type name="text" length="0"/>
+		<comment><![CDATA[The name of instance/thread that last processed, this generated_report request. ]]></comment>
 	</column>
 	<constraint name="pk_generated_report" type="pk-constr" table="_reports.generated_report">
 		<columns names="correlation_id" ref-type="src-columns"/>

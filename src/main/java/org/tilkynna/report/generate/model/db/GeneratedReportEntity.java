@@ -88,6 +88,10 @@ public class GeneratedReportEntity {
     @Type(type = "pgsql_enum")
     private ReportStatusEntity reportStatus; //
 
+    @Column(name = "processed_by")
+    @Type(type = "org.hibernate.type.TextType")
+    private String proccesedBy;
+
     @OneToMany(mappedBy = "generatedReport", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<SelectedDestinationParameterEntity> selectedDestinationParameters = new HashSet<>();
 
@@ -101,16 +105,24 @@ public class GeneratedReportEntity {
 
     @Override
     public int hashCode() {
-        return Objects.hash(destination, exportFormat, generatedAt, reportStatus, requestBody, requestedAt, requestedBy, retryCount, selectedDestinationParameters, template);
+        return Objects.hash(destination, exportFormat, generatedAt, reportStatus, requestBody, requestedAt, requestedBy, retryCount, selectedDestinationParameters, template, proccesedBy);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) { return true; }
-        if (obj == null) { return false; }
-        if (!(obj instanceof GeneratedReportEntity)) { return false; }
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (!(obj instanceof GeneratedReportEntity)) {
+            return false;
+        }
         GeneratedReportEntity other = (GeneratedReportEntity) obj;
-        return Objects.equals(destination, other.destination) && Objects.equals(exportFormat, other.exportFormat) && Objects.equals(generatedAt, other.generatedAt) && reportStatus == other.reportStatus && Objects.equals(requestBody, other.requestBody) && Objects.equals(requestedAt, other.requestedAt) && Objects.equals(requestedBy, other.requestedBy) && Objects.equals(retryCount, other.retryCount) && Objects.equals(selectedDestinationParameters, other.selectedDestinationParameters) && Objects.equals(template, other.template);
+        return Objects.equals(destination, other.destination) && Objects.equals(exportFormat, other.exportFormat) && Objects.equals(generatedAt, other.generatedAt) && reportStatus == other.reportStatus
+                && Objects.equals(requestBody, other.requestBody) && Objects.equals(requestedAt, other.requestedAt) && Objects.equals(requestedBy, other.requestedBy) && Objects.equals(retryCount, other.retryCount)
+                && Objects.equals(selectedDestinationParameters, other.selectedDestinationParameters) && Objects.equals(template, other.template) && Objects.equals(proccesedBy, other.proccesedBy);
     }
 
 }
