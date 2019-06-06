@@ -1,6 +1,6 @@
 -- Database generated with pgModeler (PostgreSQL Database Modeler).
 -- pgModeler  version: 0.9.2-alpha1
--- PostgreSQL version: 10.0
+-- PostgreSQL version: 11.0
 -- Project Site: pgmodeler.io
 -- Model Author: ---
 
@@ -307,6 +307,7 @@ CREATE TABLE _reports.generated_report (
 	request_body json NOT NULL,
 	report_status _reports.report_status,
 	retry_count smallint DEFAULT 0,
+	processed_by text,
 	CONSTRAINT pk_generated_report PRIMARY KEY (correlation_id)
 
 );
@@ -316,6 +317,8 @@ COMMENT ON COLUMN _reports.generated_report.requested_by IS 'The uuid of the use
 COMMENT ON COLUMN _reports.generated_report.request_body IS 'JSON of the request body to be used for generating this report';
 -- ddl-end --
 COMMENT ON COLUMN _reports.generated_report.retry_count IS 'Number of times left to rety upon failure ';
+-- ddl-end --
+COMMENT ON COLUMN _reports.generated_report.processed_by IS 'The name of instance/thread that last processed, this generated_report request. ';
 -- ddl-end --
 ALTER TABLE _reports.generated_report OWNER TO postgres;
 -- ddl-end --

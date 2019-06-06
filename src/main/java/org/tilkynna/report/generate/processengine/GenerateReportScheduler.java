@@ -11,6 +11,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.tilkynna.common.utils.ApplicationInstance;
 import org.tilkynna.report.generate.model.db.GeneratedReportEntity;
 import org.tilkynna.report.generate.model.db.GeneratedReportEntityRepository;
 import org.tilkynna.report.generate.model.db.ReportStatusEntity;
@@ -65,6 +66,7 @@ public class GenerateReportScheduler {
         if (reportRequest != null && generateReportRetryPolicy.isRetryNeeded(reportRequest.getRetryCount())) {
 
             reportRequest.setReportStatus(ReportStatusEntity.PENDING);
+            reportRequest.setProccesedBy(String.format("Instance [%s] on Thread [%s]", ApplicationInstance.name(), Thread.currentThread().getName()));
             generatedReportEntityRepository.save(reportRequest);
         }
 

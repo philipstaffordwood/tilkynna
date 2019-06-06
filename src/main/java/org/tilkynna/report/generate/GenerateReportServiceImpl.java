@@ -30,6 +30,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.tilkynna.common.error.CustomValidationExceptions;
 import org.tilkynna.common.error.ResourceNotFoundExceptions;
+import org.tilkynna.common.utils.ApplicationInstance;
 import org.tilkynna.engine.TemplateEngine;
 import org.tilkynna.engine.TemplateEngineFactory;
 import org.tilkynna.report.datasource.model.db.DatasourceEntity;
@@ -47,7 +48,6 @@ import org.tilkynna.report.generate.retry.GenerateReportRetryPolicyImpl;
 import org.tilkynna.report.templates.TemplateEntity;
 import org.tilkynna.report.templates.TemplateEntityRepository;
 import org.tilkynna.report.templates.TemplateStorageProperties;
-import org.tilkynna.security.SecurityContextUtility;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -126,6 +126,7 @@ public class GenerateReportServiceImpl implements GenerateReportService {
 
         setupSelectedDestinationParameters(destinationOptions, destinationEntity, generatedReportEntity);
 
+        generatedReportEntity.setProccesedBy(String.format("Instance [%s] on Thread [%s]", ApplicationInstance.name(), Thread.currentThread().getName()));
         generatedReportEntityRepository.save(generatedReportEntity);
 
         return CompletableFuture.completedFuture(generatedReportAssembler.mapGeneratedReportEntityToReportStatus(generatedReportEntity));

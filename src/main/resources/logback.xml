@@ -58,14 +58,16 @@
         <appender-ref ref="Console" />
     </root>
  
-    <logger name="org.tilkynna.report.generate" level="INFO" additivity="false">
-        <appender-ref ref="GenerateRollingFile" />
+    <logger name="org.tilkynna.report.generate" level="debug" additivity="false">
+        <!-- <appender-ref ref="GenerateRollingFile" /> -->
+         <appender-ref ref="Console" />
     </logger>
-    <logger name="org.tilkynna.report.templates.TemplatesApiController" level="INFO" additivity="false">
+    <!-- <logger name="org.tilkynna.report.templates.TemplatesApiController" level="INFO" additivity="false">
         <appender-ref ref="GenerateRollingFile" />
-    </logger>
-    <logger name="org.tilkynna.report.generate.GenerateReportQueueScheduler" level="INFO" additivity="false">
+    </logger> -->
+    <!-- <logger name="org.tilkynna.report.generate.processengine.GenerateReportScheduler" level="DEBUG" additivity="false">
         <appender-ref ref="GenerateRollingFile" />
-    </logger>
+         <appender-ref ref="Console" />
+    </logger> -->
  
 </configuration>
