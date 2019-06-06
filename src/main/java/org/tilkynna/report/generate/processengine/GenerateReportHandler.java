@@ -30,6 +30,7 @@ import org.tilkynna.report.generate.GenerateReportService;
 import org.tilkynna.report.generate.model.db.GeneratedReportEntity;
 import org.tilkynna.report.generate.model.db.GeneratedReportEntityRepository;
 import org.tilkynna.report.generate.model.db.ReportStatusEntity;
+import org.tilkynna.report.generate.retry.RetryPolicy;
 import org.tilkynna.report.templates.TemplateEntity;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -53,6 +54,9 @@ public class GenerateReportHandler {
 
     @Autowired
     private DestinationProviderFactory destinationProviderFactory;
+
+    @Autowired
+    private RetryPolicy generateReportRetryPolicy;
 
     @Async("generateReportThreadPoolExecutor")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -93,6 +97,7 @@ public class GenerateReportHandler {
 
         log.debug(String.format("start update status for ReportEntity correlationId [%s] on Thread [%s]", correlationId, Thread.currentThread().getName()));
         generatedReportEntity.setProccesedBy(String.format("Instance [%s] on Thread [%s]", ApplicationInstance.name(), Thread.currentThread().getName()));
+        generatedReportEntity.setRetryCount(generateReportRetryPolicy.calculateRetryCount(generatedReportEntity.getRetryCount()));
         generatedReportEntityRepository.save(generatedReportEntity);
         log.debug(String.format("end update status for ReportEntity correlationId [%s] on Thread [%s]", correlationId, Thread.currentThread().getName()));
     }
