@@ -20,6 +20,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.tilkynna.common.utils.ApplicationInstance;
 import org.tilkynna.report.generate.model.db.GeneratedReportEntityRepository;
 
 import lombok.extern.slf4j.Slf4j;
@@ -73,7 +74,7 @@ public class GenerateReportJobsAcquirer {
                 log.info("    *-*-* correlationIds.size(): {}", correlationIds.size());
             }
         } else {
-            log.info("--- no space to queue more thread: {} remainingCapacity: {}", Thread.currentThread().getName(), generateReportThreadPool.getQueue().remainingCapacity());
+            log.info("--- no space on q 4 instance : {} thread: {} spaceLeft: {}", ApplicationInstance.name(), Thread.currentThread().getName(), generateReportThreadPool.getQueue().remainingCapacity());
         }
 
         // log.debug("getPendingJobsAndPushToGenerateReportThreadPool END: {}", Thread.currentThread().getName());
