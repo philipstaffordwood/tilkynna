@@ -49,7 +49,7 @@ public class GenerateReportJobsAcquirer {
 
         ThreadPoolExecutor generateReportThreadPool = ((ThreadPoolTaskExecutor) generateReportExecutor).getThreadPoolExecutor();
 
-        if (batchSize < generateReportThreadPool.getQueue().remainingCapacity()) {
+        if (batchSize <= generateReportThreadPool.getQueue().remainingCapacity()) {
             List<String> correlationIds = generatedReportRepository.findReportRequestsToEnqueue(batchSize);
             boolean correlationIdsExist = correlationIds != null && correlationIds.size() >= 1;
             if (correlationIdsExist) {
@@ -71,10 +71,10 @@ public class GenerateReportJobsAcquirer {
                 correlationIds.forEach(c -> correlationIdsAsUUIDs.add(UUID.fromString(c)));
                 generatedReportRepository.markAsStarted(correlationIdsAsUUIDs);
             } else {
-                log.info("    *-*-* correlationIds.size(): {}", correlationIds.size());
+                log.info("*-*-* instance: {} thread: {} correlationIds.size(): {} ", ApplicationInstance.name(), Thread.currentThread().getName(), correlationIds.size());
             }
         } else {
-            log.info("--- no space on q 4 instance : {} thread: {} spaceLeft: {}", ApplicationInstance.name(), Thread.currentThread().getName(), generateReportThreadPool.getQueue().remainingCapacity());
+            log.info("-- no q space instance: {} thread: {} spaceLeft: {}", ApplicationInstance.name(), Thread.currentThread().getName(), generateReportThreadPool.getQueue().remainingCapacity());
         }
 
         // log.debug("getPendingJobsAndPushToGenerateReportThreadPool END: {}", Thread.currentThread().getName());
