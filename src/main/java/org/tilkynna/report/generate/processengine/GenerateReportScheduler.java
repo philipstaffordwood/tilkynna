@@ -11,6 +11,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.tilkynna.common.utils.ApplicationInstance;
 import org.tilkynna.report.generate.model.db.GeneratedReportEntity;
 import org.tilkynna.report.generate.model.db.GeneratedReportEntityRepository;
 import org.tilkynna.report.generate.model.db.ReportStatusEntity;
@@ -57,18 +58,19 @@ public class GenerateReportScheduler {
             initialDelayString = "${tilkynna.generate.monitorFailedRequests.initialDelayInMilliseconds}")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void scanFailedReportRequests() {
-        log.debug("scanFailedReportRequests START debug: {}", Thread.currentThread().getName());
+        // log.debug("scanFailedReportRequests START debug: {}", Thread.currentThread().getName());
 
         GeneratedReportEntity reportRequest = generatedReportEntityRepository.findFailedReportRequestsToRetry(generateReportRetryPolicy.getBackOffPeriod());
-        log.debug("scanFailedReportRequests reportRequests: " + reportRequest);
+        // log.debug("scanFailedReportRequests reportRequests: " + reportRequest);
 
         if (reportRequest != null && generateReportRetryPolicy.isRetryNeeded(reportRequest.getRetryCount())) {
 
             reportRequest.setReportStatus(ReportStatusEntity.PENDING);
+            reportRequest.setProccesedBy(String.format("Instance [%s] on Thread [%s]", ApplicationInstance.name(), Thread.currentThread().getName()));
             generatedReportEntityRepository.save(reportRequest);
         }
 
-        log.debug("scanFailedReportRequests END: {}", Thread.currentThread().getName());
+        // log.debug("scanFailedReportRequests END: {}", Thread.currentThread().getName());
     }
 
     // TODO include scanning for items stuck in the STARTED status
