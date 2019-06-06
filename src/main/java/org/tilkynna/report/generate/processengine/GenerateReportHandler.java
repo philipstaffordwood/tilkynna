@@ -64,8 +64,7 @@ public class GenerateReportHandler {
 
         try {
             validateGenerateReportRequest(generatedReportEntity);
-            // byte[] generatedReport = generateReport(generatedReportEntity);
-            byte[] generatedReport = "helloworls".getBytes();
+            byte[] generatedReport = generateReport(generatedReportEntity);
             writeReportToDestination(generatedReportEntity, generatedReportEntity.getDestination(), generatedReport);
 
             generatedReportEntity.setReportStatus(ReportStatusEntity.FINISHED);
