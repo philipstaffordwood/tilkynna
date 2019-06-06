@@ -58,10 +58,10 @@ public class GenerateReportScheduler {
             initialDelayString = "${tilkynna.generate.monitorFailedRequests.initialDelayInMilliseconds}")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void scanFailedReportRequests() {
-        // log.debug("scanFailedReportRequests START debug: {}", Thread.currentThread().getName());
+        log.debug("scanFailedReportRequests START debug: {}", Thread.currentThread().getName());
 
         GeneratedReportEntity reportRequest = generatedReportEntityRepository.findFailedReportRequestsToRetry(generateReportRetryPolicy.getBackOffPeriod());
-        // log.debug("scanFailedReportRequests reportRequests: " + reportRequest);
+        log.debug("scanFailedReportRequests reportRequests: " + reportRequest);
 
         if (reportRequest != null && generateReportRetryPolicy.isRetryNeeded(reportRequest.getRetryCount())) {
 
@@ -70,7 +70,7 @@ public class GenerateReportScheduler {
             generatedReportEntityRepository.save(reportRequest);
         }
 
-        // log.debug("scanFailedReportRequests END: {}", Thread.currentThread().getName());
+        log.debug("scanFailedReportRequests END: {}", Thread.currentThread().getName());
     }
 
     // TODO include scanning for items stuck in the STARTED status

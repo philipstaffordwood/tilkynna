@@ -20,7 +20,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.tilkynna.common.utils.ApplicationInstance;
 import org.tilkynna.report.generate.model.db.GeneratedReportEntityRepository;
 
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +44,7 @@ public class GenerateReportJobsAcquirer {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void getPendingJobsAndPushToGenerateReportThreadPool() {
-        // log.debug("getPendingJobsAndPushToGenerateReportThreadPool START: {}", Thread.currentThread().getName());
+        log.debug("getPendingJobsAndPushToGenerateReportThreadPool START: {}", Thread.currentThread().getName());
 
         ThreadPoolExecutor generateReportThreadPool = ((ThreadPoolTaskExecutor) generateReportExecutor).getThreadPoolExecutor();
 
@@ -53,7 +52,6 @@ public class GenerateReportJobsAcquirer {
             List<String> correlationIds = generatedReportRepository.findReportRequestsToEnqueue(batchSize);
             boolean correlationIdsExist = correlationIds != null && correlationIds.size() >= 1;
             if (correlationIdsExist) {
-                log.info("*-*-* instance: {} thread: {} correlationIds.size(): {} ", ApplicationInstance.name(), Thread.currentThread().getName(), correlationIds.size());
                 for (Iterator<String> iterator = correlationIds.iterator(); iterator.hasNext();) {
                     String correlationIdStr = iterator.next();
                     UUID correlationId = UUID.fromString(correlationIdStr);
@@ -66,15 +64,12 @@ public class GenerateReportJobsAcquirer {
 
                 }
 
-                // generatedReportRepository.flush();
                 List<UUID> correlationIdsAsUUIDs = new ArrayList<UUID>();
                 correlationIds.forEach(c -> correlationIdsAsUUIDs.add(UUID.fromString(c)));
                 generatedReportRepository.markAsStarted(correlationIdsAsUUIDs);
             }
-        } else {
-            log.info("-- no q space instance: {} thread: {} spaceLeft: {}", ApplicationInstance.name(), Thread.currentThread().getName(), generateReportThreadPool.getQueue().remainingCapacity());
         }
 
-        // log.debug("getPendingJobsAndPushToGenerateReportThreadPool END: {}", Thread.currentThread().getName());
+        log.debug("getPendingJobsAndPushToGenerateReportThreadPool END: {}", Thread.currentThread().getName());
     }
 }
