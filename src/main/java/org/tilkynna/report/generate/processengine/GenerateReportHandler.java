@@ -64,14 +64,15 @@ public class GenerateReportHandler {
 
         try {
             validateGenerateReportRequest(generatedReportEntity);
-            byte[] generatedReport = generateReport(generatedReportEntity);
+            // byte[] generatedReport = generateReport(generatedReportEntity);
+            byte[] generatedReport = "helloworls".getBytes();
             writeReportToDestination(generatedReportEntity, generatedReportEntity.getDestination(), generatedReport);
 
             generatedReportEntity.setReportStatus(ReportStatusEntity.FINISHED);
 
             // TODO call the callback URL
 
-        } catch (IOException | ParseException | BirtException | ReportDatasourceExceptionException | TemplateHasInactiveDatasourcesException knownException) {
+        } catch (IOException | /* ParseException | BirtException | */ ReportDatasourceExceptionException | TemplateHasInactiveDatasourcesException knownException) {
             log.error(String.format("knownException Generating Report correlationId [%s] on Thread [%s]", generatedReportEntity.getCorrelationId(), Thread.currentThread().getName()));
             log.error("knownException: {}", knownException.getMessage());
 
