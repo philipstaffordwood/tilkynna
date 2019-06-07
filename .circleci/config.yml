@@ -74,7 +74,7 @@ jobs:
             - ~/.m2
           key: tilkynna-build-lic-2-{{ checksum "pom.xml" }} -f pom-rat.xml
       - run: | 
-          "mvn clean -f pom-rat.xml license:check"
+          mvn clean -f pom-rat.xml license:check
           DOCKER_TAG_mel=$(mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive org.codehaus.mojo:exec-maven-plugin:1.6.0:exec)
           echo "DOCKER_TAG_mel  is: $DOCKER_TAG_mel"
   docker-build:
@@ -90,7 +90,8 @@ jobs:
     working_directory: ~/build
     steps:
       - checkout
-      - run: echo "running docker build script" && pwd && ./scripts/docker-build-and-push.sh $REPO $IMAGE_NAME $DOCKER_TAG $DOCKER_REPO_HOST $DOCKER_USER $DOCKER_PASS
+      - run:|
+          echo "running docker build script" && pwd && ./scripts/docker-build-and-push.sh $REPO $IMAGE_NAME $DOCKER_TAG $DOCKER_REPO_HOST $DOCKER_USER $DOCKER_PASS
   fossa-scan:
     docker:
       - image: golang:1.10.0-stretch
