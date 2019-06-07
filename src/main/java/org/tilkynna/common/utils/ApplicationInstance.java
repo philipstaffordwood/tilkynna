@@ -9,16 +9,17 @@ package org.tilkynna.common.utils;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import javax.annotation.PostConstruct;
+public final class ApplicationInstance {
 
-import org.springframework.stereotype.Component;
-
-@Component
-public class ApplicationInstance {
-
+    public static final String UNKNOWN_HOST = "Unknown";
     private static String name;
 
+    static {
+        initName();
+    }
+
     private ApplicationInstance() {
+
     }
 
     public static String name() {
@@ -28,12 +29,11 @@ public class ApplicationInstance {
     /**
      * Only calculate the ApplicationInstance name once, so that we are not needing to call `InetAddress.getLocalHost().getHostName();` each time we want ApplicationInstance.name()
      */
-    @PostConstruct
-    private void initName() {
+    private static void initName() {
         try {
             name = InetAddress.getLocalHost().getHostName();
         } catch (UnknownHostException e) {
-            name = "Unknown";
+            name = UNKNOWN_HOST;
         }
     }
 }
