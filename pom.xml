@@ -13,7 +13,7 @@
 
 	<groupId>org.tilkynna</groupId>
 	<artifactId>tilkynna</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.8.3</version>
 	<packaging>jar</packaging>
 
 	<name>tilkynna</name>
