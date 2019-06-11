@@ -26,15 +26,18 @@ jobs:
           key: tilkynna-build-sonar-2-{{ checksum "pom.xml" }}
       - run: |
          mvn clean
-         mvn package \
-            org.jacoco:jacoco-maven-plugin:prepare-agent \
+         mvn org.jacoco:jacoco-maven-plugin:prepare-agent \
+            package \
             sonar:sonar \
                 -Dsonar.host.url=https://sonarcloud.io \
                 -Dsonar.projectKey=$SONAR_PROJECT_KEY \
                 -Dsonar.organization=$SONAR_ORG \
                 -Dsonar.login=$SONAR_AUTH_TOKEN \
                 -Dsonar.branch.name=$CIRCLE_BRANCH \
-                -Dsonar.exclusions=srcgen/**/*
+                -Dsonar.exclusions=srcgen/**/* \
+                -Dsonar.jacoco.reportPaths=target/jacoco.exec
+      - store_artifacts:
+          path:  target
   test:
     docker:
       - image: maven:3.5.3-jdk-8-alpine
