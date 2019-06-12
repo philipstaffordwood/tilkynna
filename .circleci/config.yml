@@ -34,7 +34,7 @@ jobs:
                 -Dsonar.organization=$SONAR_ORG \
                 -Dsonar.login=$SONAR_AUTH_TOKEN \
                 -Dsonar.branch.name=$CIRCLE_BRANCH \
-                -Dsonar.exclusions=srcgen/**/* \
+                -Dsonar.exclusions=srcgen/**/*,src/test/**/* \
                 -Dsonar.jacoco.reportPaths=target/jacoco.exec
       - store_artifacts:
           path:  target
