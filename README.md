@@ -61,5 +61,8 @@ docker-compose -p tilkynna down
 
 All project documentation is currently available within the `/doc` folder.
 
+[Performance Testing Results are available in the `/doc` folder](doc/performance.md) 
+
+
 ## License
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FGrindrodBank%2Ftilkynna.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FGrindrodBank%2Ftilkynna?ref=badge_large)

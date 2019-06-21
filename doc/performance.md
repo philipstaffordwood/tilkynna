@@ -1,5 +1,5 @@
 # Performance Testing
-These are the results from our initial performance testing of Tilkynna. These tests demonstrated Tilkynna generating reports at a rate of 96 reports per second.
+These are the results from our initial performance testing of Tilkynna. These tests demonstrated that the Tilkynna Reporting service is able to  generate reports at a rate of 96 reports per second.
 
 ## Environment
 We used an [Amazon Web Service m5a.4xlarge](https://aws.amazon.com/ec2/instance-types/) for these tests.
@@ -23,8 +23,8 @@ The Keycloak used was [jboss/keycloak:4.7.0.Final](https://hub.docker.com/r/jbos
 ### SFTP Server
 [The atmoz/sftp:alpine Server](https://hub.docker.com/r/atmoz/sftp/) was deployed with Docker Compose, but was not used in the performance testing.
 
-### pg_bouncer
-Some of our testing utilized postgres load balancing in front of the database from which the reports were drawn. We used [the pgbouncer](https://hub.docker.com/r/pgbouncer/pgbouncer) docker image for this.
+### pgbouncer
+Some of our testing utilized postgres connection pooling in front of the database from which the reports were drawn. We used [the pgbouncer](https://hub.docker.com/r/pgbouncer/pgbouncer) docker image for this. Only test runs 1 and 2 below were done using pgbouncer so that we could compare the results with and without the connection pooling. The results did not show any significant performance improvements
 
 ### Docker 
 ```bash
