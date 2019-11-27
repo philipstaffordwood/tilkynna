@@ -8,8 +8,7 @@ version: 2
 #executorType: machine
 jobs:
   static-analysis:
-    machine:
-      - image: maven:3.5.3-jdk-8-alpine
+    machine
     working_directory: ~/build
     environment:
       # Customize the JVM maximum heap limit
@@ -39,8 +38,7 @@ jobs:
       - store_artifacts:
           path:  target
   test:
-    machine:
-      - image: maven:3.5.3-jdk-8-alpine
+    machine
     working_directory: ~/build
     
     environment:
