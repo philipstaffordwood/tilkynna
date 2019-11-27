@@ -8,7 +8,7 @@ version: 2
 #executorType: machine
 jobs:
   static-analysis:
-    machine
+    machine: true
     working_directory: ~/build
     environment:
       # Customize the JVM maximum heap limit
@@ -38,7 +38,7 @@ jobs:
       - store_artifacts:
           path:  target
   test:
-    machine
+    machine: true
     working_directory: ~/build
     
     environment:
