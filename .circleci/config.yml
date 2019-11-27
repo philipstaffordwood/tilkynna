@@ -112,9 +112,9 @@ jobs:
       - run: fossa test
 
   generate-axios-client:
-    working_directory: ~/repo
     docker:
        - image: openapitools/openapi-generator-cli:latest
+    working_directory: ~/repo
     steps:
       - checkout
       - run: mkdir ~/repo/tilkynna-typescript-axios
