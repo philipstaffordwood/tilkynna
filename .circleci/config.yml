@@ -75,6 +75,7 @@ jobs:
           key: tilkynna-build-lic-2-{{ checksum "pom.xml" }} -f pom-rat.xml
       - run: mvn clean -f pom-rat.xml license:check
   docker-build:
+    machine: true
     docker:
       - image: docker:18.09
     working_directory: ~/build
@@ -84,6 +85,7 @@ jobs:
           DOCKER_TAG=branch-build 
           echo "running docker build script" && pwd && ./scripts/docker-build.sh $REPO $IMAGE_NAME $DOCKER_TAG
   docker-build-push:
+    machine: true
     docker:
       - image: docker:18.09
     working_directory: ~/build
