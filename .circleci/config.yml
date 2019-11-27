@@ -5,7 +5,7 @@
 # **************************************************
 #
 version: 2
-executorType: machine
+#executorType: machine
 jobs:
   static-analysis:
     docker:
