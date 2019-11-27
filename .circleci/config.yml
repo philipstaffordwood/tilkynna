@@ -110,6 +110,7 @@ jobs:
       - run: FOSSA_API_KEY=$FOSSA_API_KEY fossa analyze
       # Note: The 'fossa test' command must be run after the analyze command has been run, as it is dependent on the previous scan.
       - run: fossa test
+
   generate-axios-client:
     working_directory: ~/repo
     docker:
@@ -117,6 +118,7 @@ jobs:
     steps:
       - checkout
       - run: mkdir ~/repo/tilkynna-typescript-axios
+      - run: find /
       - run: /usr/local/bin/docker-entrypoint.sh generate -i ~/repo/doc/tilkynna_api.yaml -g typescript-axios -o ~/repo/tilkynna-typescript-axios --model-package=model --api-package=api --additional-properties=withSeparateModelsAndApi=true,modelPropertyNaming=camelCase,npmName=@grindrodbank/tilkynna-api
       - persist_to_workspace:
           root: ~/repo
