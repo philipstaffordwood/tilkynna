@@ -118,7 +118,7 @@ jobs:
     steps:
       - checkout
       - run: mkdir ~/repo/tilkynna-typescript-axios
-      - run: /usr/local/bin/docker-entrypoint.sh generate -i ~/repo/doc/tilkynna_api.yaml -g typescript-axios -o ~/repo/tilkynna-typescript-axios --model-package=model --api-package=api --additional-properties=withSeparateModelsAndApi=true,modelPropertyNaming=camelCase,npmName=@grindrodbank/tilkynna-api
+      - run: /usr/local/bin/docker-entrypoint.sh generate -i ~/repo/doc/tilkynna_api.yml -g typescript-axios -o ~/repo/tilkynna-typescript-axios --model-package=model --api-package=api --additional-properties=withSeparateModelsAndApi=true,modelPropertyNaming=camelCase,npmName=@grindrodbank/tilkynna-api
       - persist_to_workspace:
           root: ~/repo
           paths:
