@@ -8,7 +8,7 @@ version: 2
 #executorType: machine
 jobs:
   static-analysis:
-    docker:
+    machine:
       - image: maven:3.5.3-jdk-8-alpine
     working_directory: ~/build
     environment:
@@ -39,7 +39,7 @@ jobs:
       - store_artifacts:
           path:  target
   test:
-    docker:
+    machine:
       - image: maven:3.5.3-jdk-8-alpine
     working_directory: ~/build
     
