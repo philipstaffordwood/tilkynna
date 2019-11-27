@@ -110,6 +110,45 @@ jobs:
       - run: FOSSA_API_KEY=$FOSSA_API_KEY fossa analyze
       # Note: The 'fossa test' command must be run after the analyze command has been run, as it is dependent on the previous scan.
       - run: fossa test
+  generate-axios-client:
+    working_directory: ~/repo
+    docker:
+       - image: openapitools/openapi-generator-cli:latest
+    steps:
+      - checkout
+      - run: mkdir ~/repo/tilkynna-typescript-axios
+      - run: /usr/local/bin/docker-entrypoint.sh generate -i ~/repo/doc/tilkynna_api.yaml -g typescript-axios -o ~/repo/tilkynna-typescript-axios --model-package=model --api-package=api --additional-properties=withSeparateModelsAndApi=true,modelPropertyNaming=camelCase,npmName=@grindrodbank/tilkynna-api
+      - persist_to_workspace:
+          root: ~/repo
+          paths:
+            - tilkynna-typescript-axios
+
+  publish-axios-client:
+    working_directory: ~/repo
+    docker:
+      - image: circleci/node:lts-jessie-browsers-legacy
+    steps:
+      - attach_workspace:
+          at: ~/repo/workspace
+      - run:
+          name: update-npm
+          command: 'sudo npm install -g npm@latest'
+      - run:
+          name: Authenticate with registry
+          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/repo/workspace/tilkynna-typescript-axios/.npmrc
+      - run:
+          name: Add node modules to the NPM ignore file.
+          command: echo 'node_modules/' >> ~/repo/workspace/tilkynna-typescript-axios/.npmignore
+      - run:
+          name: Run Yarn
+          command: cd ~/repo/workspace/tilkynna-typescript-axios && yarn
+      - run:
+          name: Build with Yarn
+          command: cd ~/repo/workspace/tilkynna-typescript-axios && yarn build
+      - run:
+          name: Publish to NPM with Yarn.
+          command: cd ~/repo/workspace/tilkynna-typescript-axios && yarn publish --access public
+
 workflows:
   version: 2
   build_test_and_push:
