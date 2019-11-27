@@ -151,7 +151,7 @@ jobs:
 
 workflows:
   version: 2
-  build_test_and_push:
+  untagged_build_and_test:
     jobs:
       - test
       - static-analysis
@@ -180,3 +180,4 @@ workflows:
               only: /^v*.*.*/
             branches:
               only: master
+      - generate-axios-client
