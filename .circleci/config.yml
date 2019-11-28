@@ -196,7 +196,7 @@ workflows:
       - license-headers: *only-tags
       - fossa-scan: *only-tags
       - generate-axios-client: *only-tags
-      - docker-build-push: *only-tags
+      - docker-build-push:
           requires:
           - test
           - static-analysis
