@@ -5,7 +5,7 @@
 # **************************************************
 #
 version: 2
-#executorType: machine
+#NOTE: jobs static-analysis and test use machine executor to allow use of testcontainers
 jobs:
   static-analysis:
     machine: true
