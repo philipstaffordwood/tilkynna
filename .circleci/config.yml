@@ -4,6 +4,14 @@
 # License MIT: https://opensource.org/licenses/MIT
 # **************************************************
 #
+
+only-tags: &only-tags
+  filters:
+    tags:
+      only: /^.*/
+    branches:
+      ignore: /.*/
+
 version: 2
 #executorType: machine
 jobs:
@@ -177,3 +185,31 @@ workflows:
             branches:
               only: master
       - generate-axios-client
+
+  tagged_build_push:
+    jobs:
+      - test: *only-tags
+      - static-analysis:
+          requires:
+          - test
+          <<: *only-tags
+      - license-headers: *only-tags
+      - fossa-scan: *only-tags
+      - generate-axios-client: *only-tags
+      - docker-build-push: *only-tags
+          requires:
+          - test
+          - static-analysis
+          - license-headers
+          - fossa-scan
+          - generate-axios-client
+          <<: *only-tags
+      - publish-axios-client:
+          requires:
+          - test
+          - static-analysis
+          - license-headers
+          - fossa-scan
+          - generate-axios-client
+          - docker-build-push
+          <<: *only-tags
