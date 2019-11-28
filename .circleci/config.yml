@@ -91,8 +91,7 @@ jobs:
           DOCKER_TAG=0.8.3
           echo "running docker build script" && pwd && ./scripts/docker-build-and-push.sh $REPO $IMAGE_NAME $DOCKER_TAG $DOCKER_REPO_HOST $DOCKER_USER $DOCKER_PASS
   fossa-scan:
-    docker:
-      - image: golang:1.10.0-stretch
+    machine: true
     working_directory: ~/dokuti-build
     steps:
       # Install Fossa
