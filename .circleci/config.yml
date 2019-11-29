@@ -13,11 +13,9 @@ only-tags: &only-tags
       ignore: /.*/
 
 version: 2
-
 # NOTE: Several steps have been written to run in a machine executor
 # the main reason is that the maven build for sonarqube and unit tests
 # use [TestContainers](https://www.testcontainers.org/)
-
 jobs:
   static-analysis:
     machine: true
