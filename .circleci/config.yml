@@ -98,7 +98,7 @@ jobs:
     steps:
       - checkout
       - run: |
-          DOCKER_TAG=0.8.3
+          DOCKER_TAG=$CIRCLE_TAG
           echo "running docker build script" && pwd && ./scripts/docker-build-and-push.sh $REPO $IMAGE_NAME $DOCKER_TAG $DOCKER_REPO_HOST $DOCKER_USER $DOCKER_PASS
   fossa-scan:
     machine: true
@@ -173,19 +173,6 @@ workflows:
           - test
           - static-analysis
           - license-headers
-          filters:
-            branches:
-              ignore: master
-      - docker-build-push:
-          requires:
-          - test
-          - static-analysis
-          - license-headers
-          filters:
-            tags:
-              only: /^v*.*.*/
-            branches:
-              only: master
       - generate-axios-client
 
   tagged_build_push:
