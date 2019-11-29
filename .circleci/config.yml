@@ -163,8 +163,6 @@ workflows:
       - static-analysis
       - fossa-scan:
           filters:
-            tags:
-              only: /^v*.*.*/
             branches:
               only: master
       - license-headers
